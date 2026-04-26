@@ -1,0 +1,20 @@
+{
+  "name": "yoyo-game",
+  "version": "1.0.0",
+  "description": "YOYO - Jeu de carrés multijoueur en ligne",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js"
+  },
+  "dependencies": {
+    "ws": "^8.16.0",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  }
+}
