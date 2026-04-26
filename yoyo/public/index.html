@@ -675,6 +675,7 @@ let vp = { x:0, y:0, zoom:1, minZ:.2, maxZ:10 };
 /* Animation queues */
 let animSq  = [];  // {sq, t0}
 let animDot = [];  // {x,y,color,t0}
+let hoverTarget = null;
 const DUR_SQ  = 380;
 const DUR_DOT = 220;
 
@@ -741,6 +742,28 @@ function g2s(gx, gy) {
            sy: vp.y + gy*CELL*vp.zoom };
 }
 
+function getGridHit(sx, sy) {
+  const r  = cwrap.getBoundingClientRect();
+  const gx = (sx - r.left - vp.x) / (CELL * vp.zoom);
+  const gy = (sy - r.top  - vp.y) / (CELL * vp.zoom);
+  const x  = Math.round(gx);
+  const y  = Math.round(gy);
+  if(x < 0 || y < 0 || x >= GSIZ || y >= GSIZ) return null;
+  const pos = g2s(x, y);
+  const dx  = pos.sx - (sx - r.left);
+  const dy  = pos.sy - (sy - r.top);
+  const dist = Math.hypot(dx, dy);
+  const threshold = Math.max(14, 18 / Math.max(vp.zoom, 0.5));
+  return dist <= threshold ? {x, y, sx: pos.sx, sy: pos.sy, dist} : null;
+}
+
+function updateHoverTarget(sx, sy) {
+  const hit = getGridHit(sx, sy);
+  if(!hit) { hoverTarget = null; return; }
+  if(gstate.points.find(p => p.x===hit.x && p.y===hit.y)) { hoverTarget = null; return; }
+  hoverTarget = hit;
+}
+
 /* ─ Draw ────────────────────────────────────── */
 let rafPending = false;
 function schedDraw() {
@@ -776,6 +799,33 @@ function doDraw() {
       const x1 = Math.min(W, vp.x + (GSIZ-1)*cp);
       ctx.beginPath(); ctx.moveTo(x0, sy); ctx.lineTo(x1, sy); ctx.stroke();
     }
+  }
+
+  /* Grid border */
+  ctx.save();
+  ctx.strokeStyle = '#8fa6cc';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(vp.x, vp.y, GRID_PX, GRID_PX);
+  ctx.restore();
+
+  /* ── Hover preview ring ───────────────────── */
+  if(hoverTarget) {
+    const pulse = 0.5 + 0.5 * Math.sin(now / 180);
+    const radius = Math.max(6, Math.min(12, 8 * vp.zoom)) * (0.95 + 0.12 * pulse);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
+    ctx.lineWidth = Math.max(2, 2.6 * Math.min(vp.zoom, 2));
+    ctx.shadowColor = 'rgba(255,255,255,0.75)';
+    ctx.shadowBlur  = 10;
+    ctx.beginPath(); ctx.arc(hoverTarget.sx, hoverTarget.sy, radius, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.strokeStyle = 'rgba(34,197,94,0.9)';
+    ctx.lineWidth = 1.9;
+    ctx.beginPath(); ctx.arc(hoverTarget.sx, hoverTarget.sy, radius + 5, 0, Math.PI*2); ctx.stroke();
+    ctx.restore();
+    needMore = true;
   }
 
   /* ── Intersection hint dots (zoomed in) ─── */
@@ -938,6 +988,7 @@ function onPM(e) {
       clampVp();
       schedDraw();
     }
+    if(!panning) updateHoverTarget(e.clientX, e.clientY);
 
   } else if(ptrs.size >= 2 && pinchActive) {
     const arr  = [...ptrs.values()];
@@ -1012,6 +1063,8 @@ window.addEventListener('mousemove', e => {
 });
 window.addEventListener('mouseup', e => { if(e.button===1||e.button===2) rmb=false; });
 cwrap.addEventListener('contextmenu', e => e.preventDefault());
+cwrap.addEventListener('pointermove', e => { if(ptrs.size === 0) updateHoverTarget(e.clientX, e.clientY); });
+cwrap.addEventListener('pointerleave', () => { hoverTarget = null; schedDraw(); });
 
 /* ═══════════════════════════════════════════════
    PLACE POINT
@@ -1019,10 +1072,10 @@ cwrap.addEventListener('contextmenu', e => e.preventDefault());
 function placePoint(sx, sy) {
   if(!gstate.turn || gstate.gameOver) return;
   if(gstate.turn !== myColor) { toast("Ce n'est pas ton tour !", '#e82222'); return; }
-  const {x,y} = screenToGrid(sx, sy);
-  if(x<0||y<0||x>=GSIZ||y>=GSIZ) return;
-  if(gstate.points.find(p=>p.x===x&&p.y===y)) { toast('Intersection occupée','#e82222'); return; }
-  wsSend({type:'PLACE_POINT', x, y});
+  const hit = getGridHit(sx, sy);
+  if(!hit) return;
+  if(gstate.points.find(p=>p.x===hit.x&&p.y===hit.y)) { toast('Intersection occupée','#e82222'); return; }
+  wsSend({type:'PLACE_POINT', x: hit.x, y: hit.y});
 }
 
 /* ═══════════════════════════════════════════════
@@ -1038,7 +1091,7 @@ $('b-abandon').onclick = () => { if(confirm('Abandonner la partie ?')) wsSend({t
 ═══════════════════════════════════════════════ */
 $('b-create').onclick       = () => wsSend({type:'CREATE_ROOM'});
 $('b-join').onclick         = () => { $('join-err').textContent=''; $('join-in').value=''; show('m-join'); setTimeout(()=>$('join-in').focus(),220); };
-$('b-cancel-create').onclick= () => hide('m-create');
+$('b-cancel-create').onclick= () => { hide('m-create'); if(!gstate.turn && !gstate.gameOver) show('s-home'); };
 $('b-cancel-join').onclick  = () => hide('m-join');
 $('b-do-join').onclick      = doJoin;
 $('join-in').onkeydown      = e => { if(e.key==='Enter') doJoin(); };
@@ -1049,7 +1102,12 @@ $('b-replay').onclick       = () => { hide('s-gameover'); show('s-home'); };
 $('b-gohome').onclick       = () => { hide('s-gameover'); show('s-home'); };
 
 ['m-create','m-join','m-howto'].forEach(id => {
-  $(id).addEventListener('click', e => { if(e.target===$(id)) $(id).classList.add('off'); });
+  $(id).addEventListener('click', e => {
+    if(e.target===$(id)) {
+      $(id).classList.add('off');
+      if(id==='m-create' && !gstate.turn && !gstate.gameOver) show('s-home');
+    }
+  });
 });
 
 function doJoin() {
