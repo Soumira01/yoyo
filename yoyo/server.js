@@ -81,25 +81,17 @@ function createRoom(code, mode = 'multi') {
 
 // ── Square Detection ──────────────────────────────────────────────────────────
 function detectNewSquares(points, color, squaresAlready) {
-  const colorPts = points.filter(p => p.color === color);
-  const ptSet = new Set(colorPts.map(p => `${p.x},${p.y}`));
+  const ptSet = new Set(points.filter(p => p.color === color).map(p => `${p.x},${p.y}`));
   const squareSet = new Set(squaresAlready.map(s => `${s.x},${s.y},${s.size},${s.color}`));
   const found = [];
 
-  for (let i = 0; i < colorPts.length; i++) {
-    for (let j = i + 1; j < colorPts.length; j++) {
-      const p1 = colorPts[i], p2 = colorPts[j];
-      // p1 is top-left, p2 is top-right candidate (same row)
-      if (p1.y !== p2.y) continue;
-      const size = p2.x - p1.x;
-      if (size <= 0) continue;
-      // check bottom two
-      if (ptSet.has(`${p1.x},${p1.y + size}`) && ptSet.has(`${p2.x},${p2.y + size}`)) {
-        const key = `${p1.x},${p1.y},${size},${color}`;
-        if (!squareSet.has(key) && !found.find(s => s.x===p1.x&&s.y===p1.y&&s.size===size&&s.color===color)) {
-          found.push({ x: p1.x, y: p1.y, size, color });
-        }
-      }
+  for (const p of points.filter(pt => pt.color === color)) {
+    const x = p.x;
+    const y = p.y;
+    const key = `${x},${y},1,${color}`;
+    if (squareSet.has(key) || found.some(s => s.x === x && s.y === y && s.size === 1 && s.color === color)) continue;
+    if (ptSet.has(`${x+1},${y}`) && ptSet.has(`${x},${y+1}`) && ptSet.has(`${x+1},${y+1}`)) {
+      found.push({ x, y, size: 1, color });
     }
   }
   return found;
