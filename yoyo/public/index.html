@@ -5,44 +5,40 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#1a1a2e">
+  <meta name="theme-color" content="#eef3fc">
   <title>YOYO — Le jeu des carrés</title>
   <meta name="description" content="YOYO — Jeu stratégique multijoueur. Formez des carrés sur la grille avant votre adversaire !">
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap');
 
     :root {
-      --red: #ff4757;
-      --blue: #3742fa;
-      --red-l: rgba(255, 71, 87, 0.15);
-      --blue-l: rgba(55, 66, 250, 0.15);
-      --red-glow: rgba(255, 71, 87, 0.4);
-      --blue-glow: rgba(55, 66, 250, 0.4);
+      --red: #e8192c;
+      --blue: #1a3bff;
+      --red-l: rgba(232, 25, 44, 0.13);
+      --blue-l: rgba(26, 59, 255, 0.13);
       --grid: #c8d8f0;
       --bg: #eef3fc;
-      --bar-h: 52px;
-      --footer-h: 48px;
+      --bar-h: 56px;
     }
-
     @media (max-width: 600px) {
-      :root { --bar-h: 46px; --footer-h: 44px; }
+      :root { --bar-h: 48px; }
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-
     html, body {
-      width: 100%; height: 100%; overflow: hidden;
+      width: 100%; height: 100%;
+      overflow: hidden;
       touch-action: manipulation;
-      user-select: none; -webkit-user-select: none;
+      user-select: none;
+      -webkit-user-select: none;
       -webkit-tap-highlight-color: transparent;
       font-family: 'Nunito', sans-serif;
       background: var(--bg);
     }
 
-    /* ═══════════ SCREENS ═══════════ */
+    /* ── SCREENS ────────────────────────── */
     .screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; }
     .screen.active { display: flex; }
-
     .grid-bg {
       background: var(--bg)
         linear-gradient(var(--grid) 1px, transparent 1px),
@@ -50,1292 +46,1121 @@
       background-size: 40px 40px;
     }
 
-    /* ═══════════ BUTTONS ═══════════ */
+    /* ── BUTTONS ────────────────────────── */
     .btn {
       font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 15px;
       padding: 13px 26px; border: none; border-radius: 50px; cursor: pointer;
-      transition: all 0.2s ease; letter-spacing: 0.4px; white-space: nowrap;
+      transition: transform 0.15s, box-shadow 0.15s; letter-spacing: 0.4px; white-space: nowrap;
       -webkit-tap-highlight-color: transparent; touch-action: manipulation;
-      display: inline-flex; align-items: center; gap: 8px;
+      display: inline-flex; align-items: center; gap: 6px;
     }
     .btn:hover { transform: translateY(-3px); }
     .btn:active { transform: translateY(1px); }
-
-    .btn-green { background: #2ed573; color: #0a3d1a; box-shadow: 0 4px 0 #1db854; }
-    .btn-green:hover { box-shadow: 0 7px 0 #1db854; }
-    .btn-purple { background: #a55eea; color: #fff; box-shadow: 0 4px 0 #7c3aed; }
-    .btn-purple:hover { box-shadow: 0 7px 0 #7c3aed; }
-    .btn-red { background: var(--red); color: #fff; box-shadow: 0 4px 0 #c0392b; }
-    .btn-red:hover { box-shadow: 0 7px 0 #c0392b; }
-    .btn-blue { background: var(--blue); color: #fff; box-shadow: 0 4px 0 #1e2fd8; }
-    .btn-blue:hover { box-shadow: 0 7px 0 #1e2fd8; }
-    .btn-gray { background: #cbd5e0; color: #4a5568; box-shadow: 0 4px 0 #a0aec0; }
-    .btn-gray:hover { box-shadow: 0 7px 0 #a0aec0; }
-    .btn-sm { font-size: 12px; padding: 8px 16px; }
+    .btn-green { background: #4dde80; color: #1a5c33; box-shadow: 0 4px 0 #28a455; }
+    .btn-green:hover { box-shadow: 0 7px 0 #28a455; }
+    .btn-purple { background: #b16bff; color: #fff; box-shadow: 0 4px 0 #7a3db8; }
+    .btn-purple:hover { box-shadow: 0 7px 0 #7a3db8; }
+    .btn-red { background: var(--red); color: #fff; box-shadow: 0 4px 0 #9c0f1c; }
+    .btn-red:hover { box-shadow: 0 7px 0 #9c0f1c; }
+    .btn-blue { background: var(--blue); color: #fff; box-shadow: 0 4px 0 #0f20b8; }
+    .btn-blue:hover { box-shadow: 0 7px 0 #0f20b8; }
+    .btn-gray { background: #ccd4e8; color: #4a5568; box-shadow: 0 4px 0 #9aa4bc; }
+    .btn-gray:hover { box-shadow: 0 7px 0 #9aa4bc; }
+    .btn-sm { font-size: 12px; padding: 7px 14px; }
     .btn-xs { font-size: 11px; padding: 6px 12px; border-radius: 30px; }
     .btn-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
 
-    /* ═══════════ WELCOME ═══════════ */
+    /* ── WELCOME ────────────────────────── */
     .logo {
       font-family: 'Fredoka One', cursive;
       font-size: clamp(52px, 12vw, 90px);
       color: var(--red); letter-spacing: 6px;
-      text-shadow: 4px 4px 0 rgba(255, 71, 87, 0.2);
+      text-shadow: 4px 4px 0 rgba(232, 25, 44, 0.2);
       animation: bounce 2.4s ease-in-out infinite;
     }
-    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
-
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
     .subtitle {
       font-size: clamp(13px, 3vw, 18px); color: #6680aa; font-weight: 600;
       margin: 6px 0 40px; text-align: center; padding: 0 16px;
     }
-
     .help-link {
       position: absolute; top: 16px; right: 18px;
-      font-size: 13px; color: var(--blue); cursor: pointer; font-weight: 700;
-      text-decoration: underline; z-index: 10;
+      font-size: 13px; color: var(--blue); cursor: pointer; font-weight: 700; text-decoration: underline;
     }
 
-    /* ═══════════ CARDS ═══════════ */
+    .connection-status {
+      position: absolute; top: 16px; left: 18px;
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 700; color: #6680aa;
+    }
+    .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #ffc107; }
+    .conn-dot.online { background: #4dde80; }
+    .conn-dot.offline { background: #ff4757; }
+
+    /* ── CARD ───────────────────────────── */
     .card {
-      background: #fff; border-radius: 24px;
+      background: #fff; border-radius: 22px;
       padding: clamp(24px, 6vw, 44px) clamp(20px, 8vw, 52px);
-      box-shadow: 0 12px 40px rgba(55, 66, 250, 0.12);
+      box-shadow: 0 8px 32px rgba(26, 59, 255, 0.12);
       text-align: center; max-width: 420px; width: 92%;
     }
     .card h2 { font-family: 'Fredoka One', cursive; font-size: clamp(22px, 5vw, 28px); color: #1a2a4a; margin-bottom: 16px; }
     .card p { color: #6680aa; font-size: 14px; font-weight: 600; margin-bottom: 10px; }
-
     .game-code {
       font-family: 'Fredoka One', cursive;
       font-size: clamp(40px, 10vw, 58px); color: var(--red);
       letter-spacing: 12px; margin: 16px 0;
-      text-shadow: 2px 2px 0 rgba(255, 71, 87, 0.2);
+      text-shadow: 2px 2px 0 rgba(232, 25, 44, 0.2);
     }
-
     .code-input {
       font-family: 'Fredoka One', cursive;
       font-size: clamp(28px, 8vw, 40px); letter-spacing: 8px;
       text-align: center; width: min(210px, 80%);
-      border: 3px solid var(--grid); border-radius: 14px;
+      border: 3px solid var(--grid); border-radius: 12px;
       padding: 10px; color: var(--blue); outline: none;
       transition: border-color 0.2s; touch-action: manipulation;
-      background: #f8faff;
     }
-    .code-input:focus { border-color: var(--blue); box-shadow: 0 0 0 4px var(--blue-l); }
-
+    .code-input:focus { border-color: var(--blue); }
     @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
     .pulse { animation: pulse 1.5s ease-in-out infinite; }
 
-    .status-badge {
-      display: inline-flex; align-items: center; gap: 6px;
-      background: #f0fff4; color: #22543d;
-      padding: 8px 18px; border-radius: 20px;
-      font-weight: 700; font-size: 13px; margin-top: 8px;
-    }
-    .status-badge.waiting { background: #fff5f5; color: #742a2a; }
-    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: #2ed573; }
-    .status-dot.waiting { background: #ffc107; animation: pulse 1s infinite; }
+    /* ── GAME SCREEN ────────────────────── */
+    #screen-game { background: var(--bg); flex-direction: column; align-items: stretch; overflow: hidden; }
 
-    /* ═══════════ GAME SCREEN ═══════════ */
-    #screen-game {
-      background: var(--bg); flex-direction: column; align-items: stretch;
-      overflow: hidden; position: relative;
-    }
-
-    /* TOP BAR - Redesign compact */
+    /* Top bar */
     #top-bar {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 6px 10px;
-      background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
-      border-bottom: 2px solid #e8ecf4;
+      padding: 6px 12px;
+      background: rgba(238, 243, 252, 0.97); backdrop-filter: blur(8px);
+      border-bottom: 2px solid var(--grid);
       flex-shrink: 0; z-index: 20; gap: 8px; flex-wrap: nowrap;
-      height: var(--bar-h); overflow: visible;
-      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+      height: var(--bar-h); overflow: hidden;
     }
+    .top-logo { font-family: 'Fredoka One', cursive; font-size: clamp(20px, 4vw, 30px); color: var(--red); flex-shrink: 0; }
 
-    .top-logo {
-      font-family: 'Fredoka One', cursive;
-      font-size: clamp(18px, 3.5vw, 24px);
-      color: var(--red); flex-shrink: 0;
-      letter-spacing: 2px;
+    .active-pill {
+      display: flex; align-items: center; gap: 6px;
+      background: #fff; border-radius: 20px; padding: 4px 11px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+      font-weight: 800; font-size: clamp(11px, 2vw, 14px); flex-shrink: 0;
     }
+    .active-dot { width: 10px; height: 10px; border-radius: 50%; animation: blink 1s ease-in-out infinite; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
 
-    /* Player active indicator */
-    .turn-indicator {
-      display: flex; align-items: center; gap: 8px;
-      background: #f1f5f9; border-radius: 24px; padding: 5px 14px;
-      flex-shrink: 0; min-width: 90px; justify-content: center;
-    }
-    .turn-dot {
-      width: 11px; height: 11px; border-radius: 50%;
-      animation: glowPulse 1.2s ease-in-out infinite;
-      box-shadow: 0 0 8px currentColor;
-    }
-    @keyframes glowPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.3); } }
-
-    .turn-name {
-      font-weight: 800; font-size: clamp(10px, 1.8vw, 13px);
-      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-      max-width: 70px;
-    }
-
-    /* Timer section */
-    .timers-section {
-      display: flex; flex-direction: column; align-items: center; gap: 2px;
-      flex-shrink: 0;
-    }
+    .timers { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; }
     .global-timer {
       font-family: 'Fredoka One', cursive;
-      font-size: clamp(15px, 3vw, 20px); color: #1a2a4a;
-      background: #fff; padding: 3px 10px; border-radius: 16px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-      min-width: 60px; text-align: center; font-weight: 700;
-      border: 2px solid #e8ecf4;
+      font-size: clamp(16px, 3.5vw, 22px); color: #1a2a4a;
+      background: #fff; padding: 3px 12px; border-radius: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); min-width: 68px; text-align: center;
     }
+    .turn-wrap { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #6680aa; }
+    .turn-bar-bg { width: 60px; height: 6px; background: #e0e8ff; border-radius: 3px; overflow: hidden; }
+    #turn-bar { height: 100%; border-radius: 3px; background: #4dde80; transition: width 1s linear, background 0.4s; }
+    #turn-num { font-family: 'Fredoka One', cursive; font-size: 14px; }
 
-    .turn-timer-mini {
-      display: flex; align-items: center; gap: 5px;
-      font-size: 10px; font-weight: 700; color: #64748b;
-    }
-    .turn-bar-bg {
-      width: 50px; height: 5px; background: #e2e8f0; border-radius: 3px; overflow: hidden;
-    }
-    #turn-bar { height: 100%; border-radius: 3px; transition: width 1s linear, background 0.3s; }
-    #turn-num { font-family: 'Fredoka One', cursive; font-size: 12px; min-width: 14px; text-align: center; }
+    .scores { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
+    .score-label { font-family: 'Fredoka One', cursive; font-size: 11px; color: var(--blue); }
+    .score-row { display: flex; align-items: center; gap: 5px; }
+    .score-row .av { font-size: clamp(13px, 2.5vw, 17px); }
+    .score-row .nm { font-size: clamp(10px, 1.8vw, 13px); font-weight: 700; max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .score-row .pt { font-family: 'Fredoka One', cursive; font-size: clamp(14px, 2.5vw, 18px); min-width: 22px; text-align: right; }
+    .score-row.r .nm, .score-row.r .pt { color: var(--red); }
+    .score-row.b .nm, .score-row.b .pt { color: var(--blue); }
 
-    /* Score section */
-    .scores-section {
-      display: flex; gap: 10px; flex-shrink: 0; align-items: center;
-    }
-    .score-badge {
-      display: flex; align-items: center; gap: 5px;
-      padding: 5px 12px; border-radius: 20px;
-      font-weight: 800; font-size: clamp(12px, 2vw, 14px);
-      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-      min-width: 70px; justify-content: center;
-    }
-    .score-badge.red { background: var(--red-l); color: var(--red); }
-    .score-badge.blue { background: var(--blue-l); color: var(--blue); }
-    .score-avatar { font-size: 16px; }
-    .score-value { font-family: 'Fredoka One', cursive; font-size: clamp(16px, 2.5vw, 20px); min-width: 22px; text-align: center; }
-
-    /* Zoom controls */
     .zoom-btns { display: flex; gap: 3px; flex-shrink: 0; }
     .zbtn {
-      width: 28px; height: 28px; border-radius: 8px; border: none;
-      background: #f1f5f9; color: #475569; font-size: 15px; font-weight: 700;
-      cursor: pointer; display: flex; align-items: center; justify-content: center;
-      transition: all 0.15s; -webkit-tap-highlight-color: transparent;
+      width: 30px; height: 30px; border-radius: 8px; border: none;
+      background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      color: #3a4a6a; font-size: 16px; font-weight: 700; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      transition: background 0.15s, transform 0.1s;
+      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
     }
-    .zbtn:hover { background: #e2e8f0; transform: scale(1.1); }
-    .zbtn:active { transform: scale(0.9); }
+    .zbtn:hover { background: #e0e8ff; transform: scale(1.1); }
+    .zbtn:active { transform: scale(0.95); }
 
-    /* ── CANVAS ─────────────────────── */
-    #canvas-wrap {
-      flex: 1; overflow: hidden; position: relative;
-      cursor: crosshair; touch-action: none;
-      background: #eef3fc;
-    }
+    #canvas-wrap { flex: 1; overflow: hidden; position: relative; cursor: crosshair; touch-action: none; }
     #game-canvas { position: absolute; top: 0; left: 0; display: block; }
 
-    /* ── FOOTER BAR (bottom) ────────── */
-    #footer-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 4px 10px;
-      background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(12px);
-      border-top: 2px solid #e8ecf4;
-      flex-shrink: 0; z-index: 20;
-      height: var(--footer-h);
-      box-shadow: 0 -2px 12px rgba(0,0,0,0.04);
+    /* Mobile: hide non-essential turn bar */
+    @media (max-width: 480px) {
+      #top-bar { padding: 4px 8px; gap: 5px; }
+      .active-pill span:last-child { display: none; }
+      .turn-wrap { display: none; }
     }
-    .footer-info {
-      font-size: 11px; color: #94a3b8; font-weight: 600;
-      display: flex; align-items: center; gap: 6px;
-    }
-    .footer-info span { color: #64748b; }
 
-    /* ── NOTIFICATION TOAST ─────────── */
+    /* ── TOAST ──────────────────────────── */
     #notif {
-      position: fixed; top: calc(var(--bar-h) + 12px); left: 50%;
-      transform: translateX(-50%) translateY(-16px);
-      background: #fff; border-radius: 14px; padding: 10px 22px;
+      position: fixed; top: calc(var(--bar-h) + 8px); left: 50%;
+      transform: translateX(-50%) translateY(-12px);
+      background: #fff; border-radius: 12px; padding: 8px 20px;
       font-weight: 800; font-size: clamp(13px, 3vw, 15px);
-      box-shadow: 0 12px 32px rgba(0,0,0,0.15);
-      opacity: 0; transition: all 0.3s ease;
-      pointer-events: none; z-index: 200;
-      white-space: nowrap; max-width: 90vw; overflow: hidden; text-overflow: ellipsis;
-      border-left: 4px solid var(--blue);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.13);
+      opacity: 0; transition: opacity 0.25s, transform 0.25s;
+      pointer-events: none; z-index: 100;
+      white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis;
     }
     #notif.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-    #notif.square-notif { background: #fff9e6; border-left-color: #ffc107; }
 
-    /* ── END SCREEN ─────────────────── */
+    /* ── END SCREEN ─────────────────────── */
     .end-card {
-      background: #fff; border-radius: 28px;
+      background: #fff; border-radius: 24px;
       padding: clamp(28px, 6vw, 48px) clamp(24px, 8vw, 64px);
-      box-shadow: 0 20px 60px rgba(55, 66, 250, 0.15);
+      box-shadow: 0 12px 48px rgba(26, 59, 255, 0.12);
       text-align: center; max-width: 480px; width: 92%;
     }
     .end-title { font-family: 'Fredoka One', cursive; font-size: clamp(32px, 8vw, 48px); margin-bottom: 6px; }
     .end-sub { color: #6680aa; font-size: 15px; font-weight: 700; margin-bottom: 24px; }
-    .end-scores { display: flex; gap: 20px; justify-content: center; margin-bottom: 28px; flex-wrap: wrap; }
-    .esi {
-      display: flex; flex-direction: column; align-items: center; gap: 8px;
-      padding: 20px 28px; border-radius: 20px; min-width: 120px;
-    }
+    .end-scores { display: flex; gap: 20px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
+    .esi { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 22px; border-radius: 16px; }
     .esi.re { background: var(--red-l); }
     .esi.be { background: var(--blue-l); }
-    .esi .eav { font-size: clamp(28px, 6vw, 40px); }
-    .esi .enm { font-size: 14px; font-weight: 800; }
-    .esi .ept { font-family: 'Fredoka One', cursive; font-size: clamp(40px, 8vw, 56px); }
+    .esi .eav { font-size: clamp(26px, 6vw, 36px); }
+    .esi .enm { font-size: 13px; font-weight: 800; }
+    .esi .ept { font-family: 'Fredoka One', cursive; font-size: clamp(36px, 8vw, 48px); }
     .esi.re .enm, .esi.re .ept { color: var(--red); }
     .esi.be .enm, .esi.be .ept { color: var(--blue); }
-    .winner-crown { font-size: 28px; animation: bounce 0.6s ease-in-out infinite; }
 
-    /* ── MODAL ──────────────────────── */
+    /* ── MODAL ──────────────────────────── */
     #modal-how {
       display: none; position: fixed; inset: 0;
-      background: rgba(10, 20, 60, 0.55); z-index: 300;
+      background: rgba(10, 20, 60, 0.55); z-index: 200;
       align-items: center; justify-content: center; padding: 16px;
     }
     #modal-how.open { display: flex; }
     .modal-inner {
-      background: #fff; border-radius: 22px;
+      background: #fff; border-radius: 20px;
       padding: clamp(24px, 5vw, 36px) clamp(20px, 5vw, 44px);
-      max-width: 480px; width: 100%; max-height: 85vh; overflow-y: auto;
-      box-shadow: 0 25px 70px rgba(0,0,0,0.25);
+      max-width: 470px; width: 100%; max-height: 90vh; overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
     }
     .modal-inner h2 { font-family: 'Fredoka One', cursive; font-size: clamp(20px, 5vw, 26px); color: var(--red); margin-bottom: 14px; }
-    .modal-inner ul { list-style: none; display: flex; flex-direction: column; gap: 10px; color: #475569; font-size: clamp(12px, 3vw, 14px); font-weight: 600; margin-bottom: 22px; }
-    .modal-inner ul li { padding-left: 4px; }
+    .modal-inner ul { list-style: none; display: flex; flex-direction: column; gap: 9px; color: #3a4a6a; font-size: clamp(12px, 3vw, 14px); font-weight: 600; margin-bottom: 20px; }
     .modal-inner ul li::before { content: "→ "; color: var(--blue); font-weight: 800; }
-
-    /* ── CONNECTION STATUS ──────────── */
-    .connection-indicator {
-      display: flex; align-items: center; gap: 4px;
-      font-size: 9px; color: #94a3b8; font-weight: 600;
-    }
-    .connection-dot { width: 6px; height: 6px; border-radius: 50%; background: #2ed573; }
-    .connection-dot.disconnected { background: #ff4757; }
-
-    /* ── RESPONSIVE ADJUSTMENTS ────── */
-    @media (max-width: 640px) {
-      #top-bar { padding: 4px 6px; gap: 4px; }
-      .top-logo { font-size: 16px; letter-spacing: 1px; }
-      .turn-indicator { padding: 4px 10px; min-width: 60px; }
-      .turn-name { max-width: 50px; font-size: 10px; }
-      .score-badge { padding: 4px 8px; min-width: 50px; font-size: 10px; }
-      .score-avatar { font-size: 14px; }
-      .score-value { font-size: 14px; }
-      .global-timer { font-size: 13px; padding: 2px 8px; }
-      .zbtn { width: 24px; height: 24px; font-size: 13px; }
-      .scores-section { gap: 4px; }
-      #footer-bar { padding: 4px 6px; }
-    }
-
-    @media (max-width: 380px) {
-      .turn-indicator { min-width: 40px; padding: 3px 6px; }
-      .turn-dot { width: 8px; height: 8px; }
-      .turn-name { display: none; }
-      .score-badge { padding: 3px 6px; min-width: 40px; }
-      .score-value { font-size: 12px; }
-      .global-timer { font-size: 11px; padding: 2px 6px; min-width: 44px; }
-    }
   </style>
 </head>
 <body>
 
-<!-- ═══════════════ WELCOME SCREEN ═══════════════ -->
+<!-- WELCOME -->
 <div id="screen-welcome" class="screen grid-bg active">
-  <span class="help-link" onclick="openModal()">❓ Comment jouer ?</span>
+  <span class="help-link" onclick="openModal()">Comment ça marche ?</span>
+  <div class="connection-status" id="conn-status">
+    <div class="conn-dot" id="conn-dot"></div>
+    <span id="conn-text">Connexion...</span>
+  </div>
   <div class="logo">YOYO</div>
-  <div class="subtitle">Le jeu des carrés stratégiques • Multijoueur en ligne</div>
+  <div class="subtitle">Le jeu des carrés stratégiques</div>
   <div class="btn-row">
-    <button class="btn btn-green" onclick="createRoom()">🎮 Créer une partie</button>
-    <button class="btn btn-purple" onclick="showJoinScreen()">🔗 Rejoindre</button>
+    <button class="btn btn-green" onclick="createMultiRoom()">🎮 Lancer une partie</button>
+    <button class="btn btn-purple" onclick="showJoin()">🔗 Rejoindre une partie</button>
   </div>
-  <div style="margin-top:16px;">
-    <button class="btn btn-blue btn-sm" onclick="startAIGame()">🤖 Jouer contre l'IA</button>
-  </div>
-  <div class="connection-indicator" style="margin-top:20px;" id="conn-status">
-    <div class="connection-dot" id="conn-dot"></div>
-    <span id="conn-text">Connexion au serveur...</span>
+  <div style="margin-top:14px;">
+    <button class="btn btn-blue btn-sm" onclick="startLocalAIGame()">🤖 Jouer contre l'IA</button>
   </div>
 </div>
 
-<!-- ═══════════════ CREATE ROOM SCREEN ═══════════════ -->
+<!-- CREATE -->
 <div id="screen-create" class="screen grid-bg">
   <div class="card">
     <h2>🎮 Partie créée !</h2>
     <p>Partagez ce code avec votre adversaire :</p>
     <div class="game-code" id="display-code">----</div>
-    <div class="status-badge waiting" id="room-status">
-      <div class="status-dot waiting"></div>
-      <span>En attente d'un adversaire…</span>
-    </div>
+    <p class="pulse" id="waiting-msg">En attente d'un adversaire…</p>
     <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-      <button class="btn btn-gray" onclick="leaveRoom()">Annuler</button>
+      <button class="btn btn-blue" id="btn-start-ai" onclick="startWithAIInstead()">Jouer vs IA</button>
+      <button class="btn btn-gray" onclick="cancelRoom()">Retour</button>
     </div>
-    <p style="font-size:11px;color:#94a3b8;margin-top:12px;" id="room-url-hint"></p>
   </div>
 </div>
 
-<!-- ═══════════════ JOIN ROOM SCREEN ═══════════════ -->
+<!-- JOIN -->
 <div id="screen-join" class="screen grid-bg">
   <div class="card">
     <h2>🔗 Rejoindre une partie</h2>
     <p>Entrez le code à 4 chiffres :</p>
-    <input type="text" id="join-input" class="code-input" inputmode="numeric" maxlength="4" placeholder="0000"
+    <input type="text" id="join-input" class="code-input"
+           inputmode="numeric" maxlength="4" placeholder="0000"
            oninput="this.value=this.value.replace(/\D/g,'')">
     <p id="join-error" style="color:var(--red);font-size:13px;margin-top:8px;min-height:18px;"></p>
     <div style="margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-      <button class="btn btn-blue" onclick="joinRoom()">Rejoindre</button>
+      <button class="btn btn-blue" onclick="joinMultiRoom()">Rejoindre</button>
       <button class="btn btn-gray" onclick="showScreen('screen-welcome')">Retour</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════ GAME SCREEN ═══════════════ -->
+<!-- GAME -->
 <div id="screen-game" class="screen">
-  <!-- Top bar -->
   <div id="top-bar">
     <div class="top-logo">YOYO</div>
-
-    <div class="turn-indicator">
-      <div class="turn-dot" id="turn-dot" style="color:var(--red);background:var(--red);"></div>
-      <span class="turn-name" id="turn-name" style="color:var(--red);">Vous</span>
+    <div class="active-pill">
+      <div class="active-dot" id="active-dot" style="background:var(--red)"></div>
+      <span id="active-name">Joueur</span>
+      <span style="font-size:11px;color:#6680aa;font-weight:600;">joue</span>
     </div>
-
-    <div class="timers-section">
+    <div class="timers">
       <div class="global-timer" id="global-timer">10:00</div>
-      <div class="turn-timer-mini">
-        <div class="turn-bar-bg"><div id="turn-bar" style="width:100%;background:#2ed573;"></div></div>
+      <div class="turn-wrap">
+        <span>Tour&nbsp;:</span>
+        <div class="turn-bar-bg"><div id="turn-bar" style="width:100%"></div></div>
         <span id="turn-num">8</span>s
       </div>
     </div>
-
-    <div class="scores-section">
-      <div class="score-badge red">
-        <span class="score-avatar" id="av-r">🤖</span>
-        <span class="score-value" id="pt-r">0</span>
-      </div>
-      <div class="score-badge blue">
-        <span class="score-avatar" id="av-b">👾</span>
-        <span class="score-value" id="pt-b">0</span>
-      </div>
+    <div class="scores">
+      <div class="score-label">Score !!!</div>
+      <div class="score-row r"><span class="av" id="av-r">🤖</span><span class="nm" id="nm-r">Vous</span><span class="pt" id="pt-r">00</span></div>
+      <div class="score-row b"><span class="av" id="av-b">👾</span><span class="nm" id="nm-b">IA</span><span class="pt" id="pt-b">00</span></div>
     </div>
-
     <div class="zoom-btns">
       <button class="zbtn" onclick="zoomBtn(1.25)" title="Zoom +">+</button>
       <button class="zbtn" onclick="zoomBtn(1/1.25)" title="Zoom −">−</button>
-      <button class="zbtn" onclick="resetView()" title="Centrer la vue" style="font-size:12px;">⌂</button>
+      <button class="zbtn" onclick="resetView()" title="Vue par défaut" style="font-size:13px;">⌖</button>
     </div>
+    <button class="btn btn-red btn-sm" onclick="abandonGame()">Abandonner</button>
   </div>
-
-  <!-- Canvas -->
   <div id="canvas-wrap"><canvas id="game-canvas"></canvas></div>
-
-  <!-- Footer bar -->
-  <div id="footer-bar">
-    <div class="footer-info">
-      <span id="footer-mode">🌐 Multijoueur</span>
-      <span>•</span>
-      <span id="footer-code"></span>
-    </div>
-    <button class="btn btn-red btn-xs" onclick="abandonGame()" title="Abandonner la partie">
-      🏳️ Abandonner
-    </button>
-  </div>
 </div>
 
-<!-- ═══════════════ END SCREEN ═══════════════ -->
+<!-- END -->
 <div id="screen-end" class="screen grid-bg">
   <div class="end-card">
     <div class="end-title" id="end-title">🏆 Victoire !</div>
     <div class="end-sub" id="end-sub">Fin de partie</div>
     <div class="end-scores">
-      <div class="esi re">
-        <div class="eav" id="e-av-r">🤖</div>
-        <div class="enm" id="e-nm-r">Vous</div>
-        <div class="ept" id="e-pt-r">0</div>
-      </div>
-      <div style="display:flex;align-items:center;font-size:28px;color:#cbd5e0;">VS</div>
-      <div class="esi be">
-        <div class="eav" id="e-av-b">👾</div>
-        <div class="enm" id="e-nm-b">Adversaire</div>
-        <div class="ept" id="e-pt-b">0</div>
-      </div>
+      <div class="esi re"><div class="eav" id="e-av-r">🤖</div><div class="enm" id="e-nm-r">Vous</div><div class="ept" id="e-pt-r">0</div></div>
+      <div class="esi be"><div class="eav" id="e-av-b">👾</div><div class="enm" id="e-nm-b">IA</div><div class="ept" id="e-pt-b">0</div></div>
     </div>
     <div class="btn-row" style="justify-content:center;">
-      <button class="btn btn-green" onclick="backToWelcome()">Nouvelle partie</button>
+      <button class="btn btn-green" onclick="startLocalAIGame()">Rejouer</button>
       <button class="btn btn-gray" onclick="showScreen('screen-welcome')">Accueil</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════ MODAL ═══════════════ -->
+<!-- MODAL -->
 <div id="modal-how">
   <div class="modal-inner">
-    <h2>🎯 Comment jouer à YOYO ?</h2>
+    <h2>Comment jouer à YOYO ?</h2>
     <ul>
       <li>Placez des points sur les intersections de la grille à tour de rôle</li>
-      <li>Formez des <strong>carrés parfaits</strong> avec 4 points de votre couleur</li>
-      <li>Les carrés doivent être <strong>alignés avec la grille</strong> (pas en diagonale)</li>
-      <li>Chaque carré validé rapporte <strong>1 point</strong></li>
-      <li>Un point peut compléter <strong>plusieurs carrés</strong> en même temps</li>
-      <li>⏱️ <strong>8 secondes</strong> par tour — le tour passe si vous dépassez</li>
-      <li>⏰ La partie dure <strong>10 minutes</strong> — le plus de points gagne !</li>
-      <li>📱 <strong>Mobile :</strong> glisser 1 doigt = déplacer, pincer = zoomer, tap = placer</li>
-      <li>🖥️ <strong>PC :</strong> molette = zoomer, clic+déplacer = naviguer, clic = placer</li>
+      <li>Formez des carrés parfaits avec 4 points de votre couleur</li>
+      <li>Les carrés doivent être alignés avec la grille (pas en diagonale)</li>
+      <li>Chaque carré validé rapporte 1 point — un point peut former plusieurs carrés</li>
+      <li>Vous avez <strong>8 secondes</strong> par tour — le tour passe si vous dépassez</li>
+      <li>La partie dure <strong>10 minutes</strong> — le plus de points gagne !</li>
+      <li>📱 <strong>Mobile :</strong> glisser 1 doigt = déplacer · pincer = zoomer · appui court = placer un point</li>
+      <li>🖥️ <strong>PC :</strong> molette = zoomer · clic + glisser = déplacer · clic = placer un point</li>
     </ul>
-    <button class="btn btn-blue" onclick="closeModal()" style="width:100%">C'est compris ! ✨</button>
+    <button class="btn btn-blue" onclick="closeModal()" style="width:100%">C'est compris !</button>
   </div>
 </div>
 
-<!-- ═══════════════ TOAST ═══════════════ -->
 <div id="notif"></div>
 
 <script>
-  "use strict";
+"use strict";
 
-  // ═══════════════════════════════════
-  // CONSTANTS
-  // ═══════════════════════════════════
-  const CELL = 40;
-  const GRID_MAX = 100;
-  const TURN_SEC = 8;
-  const GAME_SEC = 600;
-  const MIN_ZOOM = 0.2;
-  const MAX_ZOOM = 5.0;
-  const TAP_SLOP = 10;
+// ═══════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════
+const CELL     = 40;
+const GRID     = 50;
+const TURN_SEC = 8;
+const GAME_SEC = 600;
+const MIN_ZOOM = 0.22;
+const MAX_ZOOM = 5.0;
+const TAP_SLOP = 10;
 
-  // Determine WebSocket URL
-  const WS_URL = (() => {
-    const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
-    return `${protocol}//${location.host}`;
-  })();
+const AVATARS = ['🤖','👾','🐸','🦊','🐙','🦄','🐺','🦁','🐯','🦋'];
 
-  // ═══════════════════════════════════
-  // GAME STATE (client-side mirror)
-  // ═══════════════════════════════════
-  let G = {
-    mode: null,        // 'multi' | 'ai'
-    roomCode: null,
-    myColor: null,     // 'red' | 'blue'
-    myName: 'Vous',
-    myAvatar: '🤖',
-    players: {},        // { red: {name, avatar, isAI}, blue: {...} }
-    points: [],         // [{x, y, color}]
-    squares: [],        // [{x, y, size, color, number}]
-    scores: { red: 0, blue: 0 },
-    turn: null,
-    timeLeft: GAME_SEC,
-    turnTimeLeft: TURN_SEC,
-    gameStarted: false,
-    gameOver: false,
-    camX: 0, camY: 0, zoom: 1,
-    hover: null,
-    anims: [],
-    ws: null,
-    reconnectAttempts: 0,
-  };
+// WebSocket URL
+const WS_URL = (location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.host;
 
-  let timerTurnInterval = null;
-  let animId = null;
-  let canvas, ctx;
-  const $ = id => document.getElementById(id);
+// ═══════════════════════════════════
+// STATE
+// ═══════════════════════════════════
+let G = {
+  mode: 'local', // 'local' | 'multi' | 'ai-server'
+  points: {},
+  squares: [],
+  scores: { red: 0, blue: 0 },
+  turn: 'red',
+  timeGame: GAME_SEC,
+  timeTurn: TURN_SEC,
+  running: false,
+  aiWait: false,
+  players: {
+    red:  { name: 'Vous',    avatar: '🤖', local: true  },
+    blue: { name: 'YOYO IA', avatar: '👾', local: false }
+  },
+  camX: 0, camY: 0, zoom: 1,
+  hover: null,
+  anims: [],
+  roomCode: null,
+  myColor: null,
+  ws: null,
+};
 
-  // ═══════════════════════════════════
-  // WEBSOCKET CONNECTION
-  // ═══════════════════════════════════
-  function connectWebSocket() {
-    if (G.ws && G.ws.readyState === WebSocket.OPEN) return;
+let timerGame = null, timerTurn = null, animId = null;
+let canvas, ctx;
+const $ = id => document.getElementById(id);
 
-    updateConnectionStatus('connecting');
-    const ws = new WebSocket(WS_URL);
-
-    ws.onopen = () => {
-      console.log('🔌 WebSocket connecté');
-      G.ws = ws;
-      G.reconnectAttempts = 0;
-      updateConnectionStatus('connected');
-    };
-
-    ws.onmessage = (event) => {
-      let msg;
-      try { msg = JSON.parse(event.data); } catch (e) { return; }
-      handleServerMessage(msg);
-    };
-
-    ws.onclose = () => {
-      console.log('🔌 WebSocket déconnecté');
-      updateConnectionStatus('disconnected');
-      if (!G.gameOver && G.mode === 'multi') {
-        attemptReconnect();
-      }
-    };
-
-    ws.onerror = (err) => {
-      console.error('WebSocket error:', err);
-      updateConnectionStatus('disconnected');
-    };
-
+// ═══════════════════════════════════
+// WEBSOCKET
+// ═══════════════════════════════════
+function connectWS() {
+  if (G.ws && G.ws.readyState === WebSocket.OPEN) return;
+  updateConnStatus('connecting');
+  
+  const ws = new WebSocket(WS_URL);
+  ws.onopen = () => {
+    console.log('WebSocket connecté');
     G.ws = ws;
+    updateConnStatus('online');
+  };
+  ws.onmessage = (e) => {
+    let msg;
+    try { msg = JSON.parse(e.data); } catch(ex) { return; }
+    handleWSMessage(msg);
+  };
+  ws.onclose = () => {
+    console.log('WebSocket déconnecté');
+    updateConnStatus('offline');
+    G.ws = null;
+  };
+  ws.onerror = () => updateConnStatus('offline');
+  G.ws = ws;
+}
+
+function sendWS(obj) {
+  if (G.ws && G.ws.readyState === WebSocket.OPEN) {
+    G.ws.send(JSON.stringify(obj));
+  } else {
+    console.warn('WS not ready');
+    connectWS();
+    setTimeout(() => { if (G.ws?.readyState === WebSocket.OPEN) G.ws.send(JSON.stringify(obj)); }, 500);
   }
+}
 
-  function attemptReconnect() {
-    if (G.reconnectAttempts >= 5) {
-      toast('❌ Impossible de se reconnecter au serveur', '#ff4757');
-      return;
-    }
-    G.reconnectAttempts++;
-    const delay = Math.min(1000 * Math.pow(2, G.reconnectAttempts), 10000);
-    setTimeout(() => {
-      console.log(`🔄 Tentative de reconnexion ${G.reconnectAttempts}...`);
-      connectWebSocket();
-    }, delay);
-  }
+function updateConnStatus(status) {
+  const dot = $('conn-dot');
+  const text = $('conn-text');
+  if (!dot || !text) return;
+  dot.className = 'conn-dot';
+  if (status === 'online') { dot.classList.add('online'); text.textContent = 'Connecté'; }
+  else if (status === 'offline') { dot.classList.add('offline'); text.textContent = 'Déconnecté'; }
+  else { text.textContent = 'Connexion...'; }
+}
 
-  function sendMessage(msg) {
-    if (G.ws && G.ws.readyState === WebSocket.OPEN) {
-      G.ws.send(JSON.stringify(msg));
-    } else {
-      console.warn('WebSocket non connecté');
-      if (!G.gameOver) connectWebSocket();
-    }
-  }
+function handleWSMessage(msg) {
+  switch(msg.type) {
+    case 'ROOM_CREATED':
+      G.roomCode = msg.code;
+      G.myColor = msg.yourColor;
+      G.mode = 'multi';
+      G.players[G.myColor] = { name: msg.yourName, avatar: msg.yourAvatar, local: true };
+      G.players[msg.yourColor === 'red' ? 'blue' : 'red'] = { name: 'Adversaire', avatar: '❓', local: false };
+      $('display-code').textContent = msg.code;
+      showScreen('screen-create');
+      toast('Partagez le code ' + msg.code, '#1a3bff');
+      break;
 
-  function updateConnectionStatus(status) {
-    const dot = $('conn-dot');
-    const text = $('conn-text');
-    if (!dot || !text) return;
+    case 'ROOM_JOINED':
+      G.roomCode = msg.code;
+      G.myColor = msg.yourColor;
+      G.mode = 'multi';
+      G.players[G.myColor] = { name: msg.yourName, avatar: msg.yourAvatar, local: true };
+      G.players[msg.yourColor === 'red' ? 'blue' : 'red'] = { name: 'Adversaire', avatar: '❓', local: false };
+      toast('Connecté à la partie !', '#4dde80');
+      break;
 
-    switch (status) {
-      case 'connecting':
-        dot.className = 'connection-dot';
-        dot.style.background = '#ffc107';
-        text.textContent = 'Connexion au serveur...';
-        break;
-      case 'connected':
-        dot.className = 'connection-dot';
-        dot.style.background = '#2ed573';
-        text.textContent = 'Connecté au serveur';
-        break;
-      case 'disconnected':
-        dot.className = 'connection-dot disconnected';
-        dot.style.background = '#ff4757';
-        text.textContent = 'Déconnecté du serveur';
-        break;
-    }
-  }
+    case 'AI_GAME_READY':
+      G.roomCode = msg.code;
+      G.myColor = msg.yourColor;
+      G.mode = 'ai-server';
+      G.players[msg.yourColor] = { name: msg.yourName, avatar: msg.yourAvatar, local: true };
+      G.players[msg.aiColor] = { name: msg.aiName, avatar: msg.aiAvatar, local: false };
+      break;
 
-  // ═══════════════════════════════════
-  // SERVER MESSAGE HANDLER
-  // ═══════════════════════════════════
-  function handleServerMessage(msg) {
-    switch (msg.type) {
+    case 'GAME_START':
+      // Game started by server, sync state
+      G.running = true;
+      G.turn = msg.turn;
+      G.timeGame = GAME_SEC;
+      G.timeTurn = TURN_SEC;
+      G.scores = { red: 0, blue: 0 };
+      G.squares = [];
+      G.points = {};
+      G.anims = [];
+      if (G.mode === 'multi' || G.mode === 'ai-server') {
+        G.players['red'].local = (G.myColor === 'red');
+        G.players['blue'].local = (G.myColor === 'blue');
+      }
+      refreshHUD();
+      showScreen('screen-game');
+      initCanvas();
+      startTimers();
+      toast('La partie commence ! 🎮', '#1a3bff');
+      break;
 
-      case 'ROOM_CREATED':
-        G.roomCode = msg.code;
-        G.myColor = msg.yourColor;
-        G.myName = msg.yourName;
-        G.myAvatar = msg.yourAvatar;
-        G.mode = 'multi';
-        G.players[G.myColor] = { name: msg.yourName, avatar: msg.yourAvatar, isAI: false };
-        $('display-code').textContent = msg.code;
-        $('room-status').innerHTML = '<div class="status-dot waiting"></div><span>En attente d\'un adversaire…</span>';
-        $('room-url-hint').textContent = `Code: ${msg.code} — Partagé avec votre adversaire`;
-        showScreen('screen-create');
-        toast('🎮 Partie créée ! Code: ' + msg.code, '#3742fa');
-        break;
-
-      case 'ROOM_JOINED':
-        G.roomCode = msg.code;
-        G.myColor = msg.yourColor;
-        G.myName = msg.yourName;
-        G.myAvatar = msg.yourAvatar;
-        G.mode = 'multi';
-        G.players[G.myColor] = { name: msg.yourName, avatar: msg.yourAvatar, isAI: false };
-        toast('✅ Connecté à la partie !', '#2ed573');
-        break;
-
-      case 'AI_GAME_READY':
-        G.roomCode = msg.code;
-        G.myColor = msg.yourColor;
-        G.myName = msg.yourName;
-        G.myAvatar = msg.yourAvatar;
-        G.mode = 'ai';
-        G.players[msg.yourColor] = { name: msg.yourName, avatar: msg.yourAvatar, isAI: false };
-        G.players[msg.aiColor] = { name: msg.aiName, avatar: msg.aiAvatar, isAI: true };
-        break;
-
-      case 'GAME_START':
-        G.gameStarted = true;
-        G.turn = msg.turn;
-        G.timeLeft = GAME_SEC;
-        G.turnTimeLeft = TURN_SEC;
-        initializeGameUI();
-        toast('🚀 La partie commence !', '#2ed573');
-        updateActiveIndicator();
-        break;
-
-      case 'STATE_UPDATE':
-        G.points = msg.points || [];
-        G.squares = msg.squares || [];
-        G.scores = msg.scores || { red: 0, blue: 0 };
-        G.turn = msg.turn;
-        G.timeLeft = msg.timeLeft;
-        G.turnTimeLeft = msg.turnTimeLeft;
-        G.gameOver = msg.gameOver;
-
-        if (msg.players) {
-          for (const p of msg.players) {
-            G.players[p.color] = { name: p.name, avatar: p.avatar, isAI: p.isAI || false };
+    case 'STATE_UPDATE':
+      // Sync points from server format
+      if (msg.points) {
+        G.points = {};
+        for (const p of msg.points) {
+          G.points[`${p.x},${p.y}`] = p.color;
+        }
+      }
+      if (msg.squares) {
+        G.squares = msg.squares.map(s => ({ x: s.x, y: s.y, color: s.color, num: s.number || G.squares.length+1 }));
+      }
+      G.scores = msg.scores || G.scores;
+      G.turn = msg.turn;
+      G.timeGame = msg.timeLeft;
+      G.timeTurn = msg.turnTimeLeft;
+      if (msg.players) {
+        for (const p of msg.players) {
+          if (G.players[p.color]) {
+            G.players[p.color].name = p.name;
+            G.players[p.color].avatar = p.avatar;
           }
         }
-
-        updateHUD();
-        updateActiveIndicator();
-        break;
-
-      case 'SQUARES_FORMED':
-        const playerName = G.players[msg.color]?.name || 'Joueur';
-        toast(`✨ ${playerName} a formé ${msg.scored} carré(s) ! +${msg.scored}`, '#ffc107');
-        triggerSquareAnimation(msg.squares, msg.color);
-        break;
-
-      case 'GAME_OVER':
-        G.gameOver = true;
-        G.scores = msg.scores;
-        clearTimers();
-        showEndScreen(msg.winner);
-        break;
-
-      case 'OPPONENT_JOINED':
-        if (msg.players) {
-          for (const p of msg.players) {
-            G.players[p.color] = { name: p.name, avatar: p.avatar, isAI: false };
-          }
-        }
-        $('room-status').innerHTML = '<div class="status-dot" style="background:#2ed573;"></div><span>Adversaire connecté !</span>';
-        toast('👋 Adversaire connecté !', '#2ed573');
-        break;
-
-      case 'OPPONENT_DISCONNECTED':
-        toast('⚠️ Adversaire déconnecté', '#ff4757');
-        break;
-
-      case 'PLAYER_ABANDONED':
-        toast('🏳️ Un joueur a abandonné', '#ff4757');
-        break;
-
-      case 'ERROR':
-        toast('❌ ' + msg.message, '#ff4757');
-        if (msg.message.includes('introuvable') || msg.message.includes('complète')) {
-          showScreen('screen-welcome');
-        }
-        break;
-
-      case 'PONG':
-        // keepalive response
-        break;
-    }
-  }
-
-  // ═══════════════════════════════════
-  // SCREENS
-  // ═══════════════════════════════════
-  function showScreen(id) {
-    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-    $(id).classList.add('active');
-  }
-
-  function showJoinScreen() {
-    $('join-input').value = '';
-    $('join-error').textContent = '';
-    showScreen('screen-join');
-  }
-
-  function backToWelcome() {
-    cleanupGame();
-    showScreen('screen-welcome');
-  }
-
-  // ═══════════════════════════════════
-  // ROOM MANAGEMENT
-  // ═══════════════════════════════════
-  function createRoom() {
-    connectWebSocket();
-    setTimeout(() => sendMessage({ type: 'CREATE_ROOM' }), 300);
-  }
-
-  function joinRoom() {
-    const code = $('join-input').value;
-    if (code.length !== 4) {
-      $('join-error').textContent = 'Code invalide (4 chiffres requis).';
-      return;
-    }
-    $('join-error').textContent = '';
-    connectWebSocket();
-    setTimeout(() => sendMessage({ type: 'JOIN_ROOM', code }), 300);
-  }
-
-  function leaveRoom() {
-    G.roomCode = null;
-    G.mode = null;
-    showScreen('screen-welcome');
-  }
-
-  function startAIGame() {
-    connectWebSocket();
-    setTimeout(() => sendMessage({ type: 'START_AI_GAME' }), 300);
-  }
-
-  // ═══════════════════════════════════
-  // GAME INITIALIZATION
-  // ═══════════════════════════════════
-  function initializeGameUI() {
-    G.points = [];
-    G.squares = [];
-    G.scores = { red: 0, blue: 0 };
-    G.anims = [];
-    G.hover = null;
-    G.camX = 0;
-    G.camY = 0;
-    G.zoom = 1;
-    G.gameOver = false;
-
-    refreshPlayersDisplay();
-    showScreen('screen-game');
-    initCanvas();
-    startClientTimers();
-    updateHUD();
-    updateActiveIndicator();
-
-    // Update footer
-    if (G.mode === 'ai') {
-      $('footer-mode').textContent = '🤖 Mode Solo';
-    } else {
-      $('footer-mode').textContent = '🌐 Multijoueur';
-    }
-    $('footer-code').textContent = G.roomCode ? `Partie #${G.roomCode}` : '';
-  }
-
-  function refreshPlayersDisplay() {
-    const r = G.players['red'] || { name: 'Rouge', avatar: '🔴' };
-    const b = G.players['blue'] || { name: 'Bleu', avatar: '🔵' };
-
-    $('av-r').textContent = r.avatar;
-    $('av-b').textContent = b.avatar;
-    $('e-av-r').textContent = r.avatar;
-    $('e-av-b').textContent = b.avatar;
-    $('e-nm-r').textContent = r.name;
-    $('e-nm-b').textContent = b.name;
-  }
-
-  // ═══════════════════════════════════
-  // CANVAS SETUP
-  // ═══════════════════════════════════
-  function initCanvas() {
-    const wrap = $('canvas-wrap');
-    const old = $('game-canvas');
-    const fresh = old.cloneNode(false);
-    fresh.id = 'game-canvas';
-    wrap.replaceChild(fresh, old);
-    canvas = fresh;
-    canvas.width = wrap.clientWidth;
-    canvas.height = wrap.clientHeight;
-    ctx = canvas.getContext('2d');
-    resetView();
-
-    // Desktop events
-    canvas.addEventListener('mousedown', onMD, false);
-    canvas.addEventListener('mousemove', onMM, false);
-    canvas.addEventListener('mouseup', onMU, false);
-    canvas.addEventListener('mouseleave', () => { mDrag = false; G.hover = null; }, false);
-    canvas.addEventListener('click', onCK, false);
-    canvas.addEventListener('wheel', onWH, { passive: false });
-
-    // Mobile events
-    canvas.addEventListener('touchstart', onTS, { passive: false });
-    canvas.addEventListener('touchmove', onTM, { passive: false });
-    canvas.addEventListener('touchend', onTE, { passive: false });
-    canvas.addEventListener('touchcancel', onTE, { passive: false });
-
-    // Resize observer
-    if (window._resizeObserver) window._resizeObserver.disconnect();
-    window._resizeObserver = new ResizeObserver(() => {
-      if (!canvas) return;
-      canvas.width = wrap.clientWidth;
-      canvas.height = wrap.clientHeight;
-    });
-    window._resizeObserver.observe(wrap);
-
-    if (animId) cancelAnimationFrame(animId);
-    animId = requestAnimationFrame(render);
-  }
-
-  function resetView() {
-    if (!canvas) return;
-    G.zoom = 1;
-    const midX = GRID_MAX / 2;
-    const midY = GRID_MAX / 2;
-    G.camX = canvas.width / 2 - midX * CELL;
-    G.camY = canvas.height / 2 - midY * CELL;
-  }
-
-  function zoomBtn(f) {
-    if (canvas) applyZoom(f, canvas.width / 2, canvas.height / 2);
-  }
-
-  function applyZoom(f, cx, cy) {
-    const nz = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, G.zoom * f));
-    if (nz === G.zoom) return;
-    G.camX = cx - (cx - G.camX) * (nz / G.zoom);
-    G.camY = cy - (cy - G.camY) * (nz / G.zoom);
-    G.zoom = nz;
-  }
-
-  // ═══════════════════════════════════
-  // RENDER
-  // ═══════════════════════════════════
-  function render(ts) {
-    animId = requestAnimationFrame(render);
-    if (!canvas || !ctx) return;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = '#eef3fc';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.save();
-    ctx.translate(G.camX, G.camY);
-    ctx.scale(G.zoom, G.zoom);
-
-    drawGrid();
-    drawSquares();
-    drawPoints(ts);
-    drawHoverDot();
-
-    ctx.restore();
-  }
-
-  function drawGrid() {
-    if (!canvas) return;
-    const vw = canvas.width / G.zoom, vh = canvas.height / G.zoom;
-    const ox = -G.camX / G.zoom, oy = -G.camY / G.zoom;
-    const startX = Math.max(0, Math.floor(ox / CELL) - 1);
-    const endX = Math.min(GRID_MAX, Math.ceil((ox + vw) / CELL) + 1);
-    const startY = Math.max(0, Math.floor(oy / CELL) - 1);
-    const endY = Math.min(GRID_MAX, Math.ceil((oy + vh) / CELL) + 1);
-
-    ctx.strokeStyle = '#d0d8e8';
-    ctx.lineWidth = 1 / G.zoom;
-
-    for (let x = startX; x <= endX; x++) {
-      ctx.beginPath();
-      ctx.moveTo(x * CELL, startY * CELL);
-      ctx.lineTo(x * CELL, endY * CELL);
-      ctx.stroke();
-    }
-    for (let y = startY; y <= endY; y++) {
-      ctx.beginPath();
-      ctx.moveTo(startX * CELL, y * CELL);
-      ctx.lineTo(endX * CELL, y * CELL);
-      ctx.stroke();
-    }
-  }
-
-  function drawSquares() {
-    if (!G.squares) return;
-    for (const sq of G.squares) {
-      const x = sq.x * CELL, y = sq.y * CELL;
-      const size = (sq.size || 1) * CELL;
-      const isR = sq.color === 'red';
-
-      ctx.fillStyle = isR ? 'rgba(255,71,87,0.12)' : 'rgba(55,66,250,0.12)';
-      ctx.fillRect(x, y, size, size);
-      ctx.strokeStyle = isR ? '#ff4757' : '#3742fa';
-      ctx.lineWidth = 2.5 / G.zoom;
-      ctx.strokeRect(x + 1/G.zoom, y + 1/G.zoom, size - 2/G.zoom, size - 2/G.zoom);
-
-      ctx.fillStyle = isR ? '#ff4757' : '#3742fa';
-      ctx.font = `bold ${Math.round(CELL * 0.4)}px "Fredoka One", cursive`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.fillText(sq.number || '', x + size/2, y + size/2);
-    }
-  }
-
-  function drawPoints(ts) {
-    if (!G.points) return;
-    for (const p of G.points) {
-      dot(p.x * CELL, p.y * CELL, p.color, 6);
-    }
-
-    G.anims = G.anims.filter(a => {
-      const t = Math.min((ts - a.start) / a.dur, 1);
-      const isR = a.color === 'red';
-      if (a.type === 'ripple') {
-        const r = 6 + 20 * t, alp = (1 - t) * 0.6;
-        ctx.beginPath();
-        ctx.arc(a.x * CELL, a.y * CELL, r, 0, Math.PI * 2);
-        ctx.strokeStyle = isR ? `rgba(255,71,87,${alp})` : `rgba(55,66,250,${alp})`;
-        ctx.lineWidth = 2 / G.zoom;
-        ctx.stroke();
-      } else if (a.type === 'sqflash') {
-        const sc = 0.5 + 0.5 * Math.sin(t * Math.PI);
-        ctx.save();
-        ctx.translate(a.x * CELL + CELL/2, a.y * CELL + CELL/2);
-        ctx.scale(sc, sc);
-        ctx.strokeStyle = isR ? `rgba(255,71,87,${1-t})` : `rgba(55,66,250,${1-t})`;
-        ctx.lineWidth = 5 / G.zoom;
-        ctx.strokeRect(-CELL/2, -CELL/2, CELL, CELL);
-        ctx.restore();
       }
-      return t < 1;
-    });
-  }
-
-  function drawHoverDot() {
-    if (!G.hover || !G.gameStarted || G.gameOver) return;
-    if (G.turn !== G.myColor) return;
-    const { gx, gy } = G.hover;
-    if (gx < 0 || gy < 0 || gx > GRID_MAX || gy > GRID_MAX) return;
-    if (G.points.find(p => p.x === gx && p.y === gy)) return;
-
-    ctx.beginPath();
-    ctx.arc(gx * CELL, gy * CELL, 7, 0, Math.PI * 2);
-    ctx.fillStyle = G.myColor === 'red' ? 'rgba(255,71,87,0.35)' : 'rgba(55,66,250,0.35)';
-    ctx.fill();
-  }
-
-  function dot(px, py, color, r) {
-    ctx.beginPath();
-    ctx.arc(px, py, r, 0, Math.PI * 2);
-    ctx.fillStyle = color === 'red' ? '#ff4757' : '#3742fa';
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(px, py, r * 0.35, 0, Math.PI * 2);
-    ctx.fillStyle = 'rgba(255,255,255,0.55)';
-    ctx.fill();
-  }
-
-  // ═══════════════════════════════════
-  // MOUSE EVENTS
-  // ═══════════════════════════════════
-  let mDrag = false, mMoved = false, mX0 = 0, mY0 = 0, mCX0 = 0, mCY0 = 0;
-
-  function onMD(e) {
-    mDrag = true; mMoved = false;
-    mX0 = e.clientX; mY0 = e.clientY;
-    mCX0 = G.camX; mCY0 = G.camY;
-  }
-
-  function onMM(e) {
-    const r = canvas.getBoundingClientRect();
-    G.hover = {
-      gx: Math.round((e.clientX - r.left - G.camX) / G.zoom / CELL),
-      gy: Math.round((e.clientY - r.top - G.camY) / G.zoom / CELL)
-    };
-    if (!mDrag) return;
-    const dx = e.clientX - mX0, dy = e.clientY - mY0;
-    if (Math.abs(dx) > 8 || Math.abs(dy) > 8) mMoved = true;
-    G.camX = mCX0 + dx;
-    G.camY = mCY0 + dy;
-  }
-
-  function onMU() { mDrag = false; }
-
-  function onCK(e) {
-    if (mMoved) { mMoved = false; return; }
-    if (!G.gameStarted || G.gameOver || G.turn !== G.myColor) return;
-    const r = canvas.getBoundingClientRect();
-    const gx = Math.round((e.clientX - r.left - G.camX) / G.zoom / CELL);
-    const gy = Math.round((e.clientY - r.top - G.camY) / G.zoom / CELL);
-    placePoint(gx, gy);
-  }
-
-  function onWH(e) {
-    e.preventDefault();
-    const r = canvas.getBoundingClientRect();
-    applyZoom(e.deltaY < 0 ? 1.13 : 1/1.13, e.clientX - r.left, e.clientY - r.top);
-  }
-
-  // ═══════════════════════════════════
-  // TOUCH EVENTS
-  // ═══════════════════════════════════
-  let touchMoved = false, wasMulti = false;
-  let tPanX0 = 0, tPanY0 = 0, tCamX0 = 0, tCamY0 = 0;
-  let tPinch0 = null;
-
-  function onTS(e) {
-    e.preventDefault();
-    const n = e.touches.length;
-    if (n === 1 && !wasMulti) {
-      const t = e.touches[0];
-      touchMoved = false;
-      tPanX0 = t.clientX; tPanY0 = t.clientY;
-      tCamX0 = G.camX; tCamY0 = G.camY;
-    } else {
-      wasMulti = true; touchMoved = true;
-      if (n >= 2) {
-        tPinch0 = pinchD(e.touches[0], e.touches[1]);
-        const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-        const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-        tPanX0 = cx; tPanY0 = cy;
-        tCamX0 = G.camX; tCamY0 = G.camY;
-      }
-    }
-  }
-
-  function onTM(e) {
-    e.preventDefault();
-    const n = e.touches.length;
-    if (n === 1 && !wasMulti) {
-      const t = e.touches[0];
-      const dx = t.clientX - tPanX0, dy = t.clientY - tPanY0;
-      if (Math.abs(dx) > TAP_SLOP || Math.abs(dy) > TAP_SLOP) touchMoved = true;
-      G.camX = tCamX0 + dx; G.camY = tCamY0 + dy;
-    } else if (n >= 2) {
-      wasMulti = true; touchMoved = true;
-      const t0 = e.touches[0], t1 = e.touches[1];
-      const dist = pinchD(t0, t1);
-      const cx = (t0.clientX + t1.clientX) / 2;
-      const cy = (t0.clientY + t1.clientY) / 2;
-      const r = canvas.getBoundingClientRect();
-      if (tPinch0) applyZoom(dist / tPinch0, cx - r.left, cy - r.top);
-      tPinch0 = dist;
-      G.camX = tCamX0 + (cx - tPanX0);
-      G.camY = tCamY0 + (cy - tPanY0);
-    }
-  }
-
-  function onTE(e) {
-    e.preventDefault();
-    if (e.touches.length === 0 && !wasMulti && !touchMoved) {
-      const t = e.changedTouches[0];
-      if (G.gameStarted && !G.gameOver && G.turn === G.myColor) {
-        const r = canvas.getBoundingClientRect();
-        const gx = Math.round((t.clientX - r.left - G.camX) / G.zoom / CELL);
-        const gy = Math.round((t.clientY - r.top - G.camY) / G.zoom / CELL);
-        placePoint(gx, gy);
-      }
-    }
-    if (e.touches.length === 0) {
-      wasMulti = false; touchMoved = false; tPinch0 = null;
-    } else if (e.touches.length === 1) {
-      wasMulti = true;
-      const t = e.touches[0];
-      tPanX0 = t.clientX; tPanY0 = t.clientY;
-      tCamX0 = G.camX; tCamY0 = G.camY;
-      tPinch0 = null;
-    }
-  }
-
-  function pinchD(t0, t1) {
-    return Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY);
-  }
-
-  // ═══════════════════════════════════
-  // GAME ACTIONS
-  // ═══════════════════════════════════
-  function placePoint(gx, gy) {
-    if (gx < 0 || gy < 0 || gx > GRID_MAX || gy > GRID_MAX) return;
-    if (G.points.find(p => p.x === gx && p.y === gy)) return;
-    if (G.turn !== G.myColor) return;
-
-    // Add animation locally
-    G.anims.push({ type: 'ripple', x: gx, y: gy, color: G.myColor, start: performance.now(), dur: 450 });
-
-    // Send to server
-    sendMessage({ type: 'PLACE_POINT', x: gx, y: gy });
-  }
-
-  function abandonGame() {
-    if (!G.gameStarted || G.gameOver) return;
-    if (confirm('Abandonner la partie en cours ? Cette action est irréversible.')) {
-      sendMessage({ type: 'ABANDON' });
-      G.gameOver = true;
-      clearTimers();
-      showScreen('screen-welcome');
-      toast('🏳️ Vous avez abandonné la partie', '#ff4757');
-    }
-  }
-
-  // ═══════════════════════════════════
-  // TIMERS (client-side display only)
-  // ═══════════════════════════════════
-  function startClientTimers() {
-    clearTimers();
-    timerTurnInterval = setInterval(() => {
-      if (!G.gameStarted || G.gameOver) return;
-      if (G.turnTimeLeft > 0) G.turnTimeLeft--;
+      updateScore();
+      updateActiveIndicator();
+      updateGlobalTimer();
       updateTurnBar();
-    }, 1000);
-  }
+      break;
 
-  function clearTimers() {
-    if (timerTurnInterval) { clearInterval(timerTurnInterval); timerTurnInterval = null; }
-  }
-
-  function updateHUD() {
-    updateGlobalTimer();
-    updateTurnBar();
-    updateScoreDisplay();
-  }
-
-  function updateGlobalTimer() {
-    const m = String(Math.floor(G.timeLeft / 60)).padStart(2, '0');
-    const s = String(G.timeLeft % 60).padStart(2, '0');
-    const el = $('global-timer');
-    if (el) {
-      el.textContent = `${m}:${s}`;
-      el.style.color = G.timeLeft <= 60 ? '#ff4757' : '#1a2a4a';
-    }
-  }
-
-  function updateTurnBar() {
-    const pct = Math.max(0, (G.turnTimeLeft / TURN_SEC) * 100);
-    const bar = $('turn-bar');
-    if (bar) {
-      bar.style.width = pct + '%';
-      bar.style.background = pct > 50 ? '#2ed573' : pct > 25 ? '#ffc107' : '#ff4757';
-    }
-    const num = $('turn-num');
-    if (num) num.textContent = Math.max(0, G.turnTimeLeft);
-  }
-
-  function updateScoreDisplay() {
-    $('pt-r').textContent = G.scores.red || 0;
-    $('pt-b').textContent = G.scores.blue || 0;
-    $('e-pt-r').textContent = G.scores.red || 0;
-    $('e-pt-b').textContent = G.scores.blue || 0;
-  }
-
-  function updateActiveIndicator() {
-    if (!G.turn) return;
-    const isRed = G.turn === 'red';
-    const player = G.players[G.turn] || {};
-    const dot = $('turn-dot');
-    const name = $('turn-name');
-
-    if (dot) {
-      dot.style.color = isRed ? 'var(--red)' : 'var(--blue)';
-      dot.style.background = isRed ? 'var(--red)' : 'var(--blue)';
-    }
-    if (name) {
-      name.textContent = player.name || (isRed ? 'Rouge' : 'Bleu');
-      name.style.color = isRed ? 'var(--red)' : 'var(--blue)';
-    }
-  }
-
-  // ═══════════════════════════════════
-  // END SCREEN
-  // ═══════════════════════════════════
-  function showEndScreen(winner) {
-    clearTimers();
-    G.gameOver = true;
-    updateScoreDisplay();
-
-    const rs = G.scores.red || 0;
-    const bs = G.scores.blue || 0;
-    const rPlayer = G.players['red'] || { name: 'Rouge' };
-    const bPlayer = G.players['blue'] || { name: 'Bleu' };
-
-    let title, sub;
-    if (winner === G.myColor) {
-      title = '🏆 Victoire !';
-      sub = `Vous avez gagné avec ${G.scores[G.myColor]} point(s) !`;
-    } else if (winner && winner !== G.myColor) {
-      title = '😔 Défaite';
-      sub = `${G.players[winner]?.name || 'Adversaire'} a gagné`;
-    } else if (rs > bs) {
-      title = '🏆 Victoire Rouge !';
-      sub = `${rPlayer.name} gagne avec ${rs} point(s)`;
-    } else if (bs > rs) {
-      title = '🏆 Victoire Bleue !';
-      sub = `${bPlayer.name} gagne avec ${bs} point(s)`;
-    } else {
-      title = '🤝 Égalité !';
-      sub = `${rs} point(s) chacun`;
-    }
-
-    $('end-title').textContent = title;
-    $('end-sub').textContent = sub;
-
-    refreshPlayersDisplay();
-    updateScoreDisplay();
-    showScreen('screen-end');
-  }
-
-  function cleanupGame() {
-    clearTimers();
-    if (animId) { cancelAnimationFrame(animId); animId = null; }
-    G.gameStarted = false;
-    G.gameOver = true;
-    G.points = [];
-    G.squares = [];
-    G.scores = { red: 0, blue: 0 };
-    G.anims = [];
-    G.turn = null;
-    G.mode = null;
-    G.roomCode = null;
-  }
-
-  // ═══════════════════════════════════
-  // ANIMATIONS
-  // ═══════════════════════════════════
-  function triggerSquareAnimation(squares, color) {
-    for (const sq of squares) {
-      G.anims.push({
-        type: 'sqflash',
-        x: sq.x,
-        y: sq.y,
-        color,
-        start: performance.now(),
-        dur: 800
-      });
-    }
-  }
-
-  // ═══════════════════════════════════
-  // TOAST
-  // ═══════════════════════════════════
-  let toastTO;
-  function toast(msg, color = '#3742fa') {
-    const el = $('notif');
-    if (!el) return;
-    el.textContent = msg;
-    el.style.color = '#1a2a4a';
-    el.style.borderLeftColor = color;
-    el.classList.add('show');
-    clearTimeout(toastTO);
-    toastTO = setTimeout(() => el.classList.remove('show'), 3000);
-  }
-
-  // ═══════════════════════════════════
-  // MODAL
-  // ═══════════════════════════════════
-  function openModal() { $('modal-how').classList.add('open'); }
-  function closeModal() { $('modal-how').classList.remove('open'); }
-  $('modal-how').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
-
-  // ═══════════════════════════════════
-  // INIT
-  // ═══════════════════════════════════
-  function init() {
-    connectWebSocket();
-    // Auto-reconnect ping every 30 seconds
-    setInterval(() => {
-      if (G.ws && G.ws.readyState === WebSocket.OPEN) {
-        sendMessage({ type: 'PING' });
-      } else if (!G.gameOver && G.mode === 'multi') {
-        connectWebSocket();
+    case 'SQUARES_FORMED':
+      if (msg.squares) {
+        for (const sq of msg.squares) {
+          G.anims.push({ type: 'sqflash', x: sq.x, y: sq.y, color: msg.color, start: performance.now(), dur: 600 });
+        }
       }
-    }, 30000);
+      toast(`+${msg.scored} carré(s) pour ${G.players[msg.color]?.name || msg.color} !`, msg.color === 'red' ? '#e8192c' : '#1a3bff');
+      break;
+
+    case 'OPPONENT_JOINED':
+      if (msg.players) {
+        for (const p of msg.players) {
+          if (p.color !== G.myColor) {
+            G.players[p.color] = { name: p.name, avatar: p.avatar, local: false };
+          }
+        }
+      }
+      document.querySelector('#screen-create .pulse')?.remove();
+      toast('Adversaire connecté ! 🎉', '#4dde80');
+      break;
+
+    case 'GAME_OVER':
+      G.running = false;
+      clearInterval(timerGame);
+      clearInterval(timerTurn);
+      G.scores = msg.scores || G.scores;
+      endGame(msg.winner === G.myColor ? 'win' : (msg.winner ? 'lose' : 'draw'));
+      break;
+
+    case 'OPPONENT_DISCONNECTED':
+      if (G.running) {
+        toast('Adversaire déconnecté 😢', '#ff4757');
+        G.running = false;
+        clearInterval(timerGame);
+        clearInterval(timerTurn);
+        endGame('win');
+      }
+      break;
+
+    case 'PLAYER_ABANDONED':
+      toast('Un joueur a abandonné 🏳️', '#ff4757');
+      break;
+
+    case 'ERROR':
+      toast(msg.message, '#ff4757');
+      if ($('join-error')) $('join-error').textContent = msg.message;
+      break;
+
+    case 'PONG':
+      break;
+  }
+}
+
+// ═══════════════════════════════════
+// SCREENS
+// ═══════════════════════════════════
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+function createMultiRoom() {
+  connectWS();
+  sendWS({ type: 'CREATE_ROOM' });
+}
+
+function showJoin() { $('join-input').value = ''; $('join-error').textContent = ''; showScreen('screen-join'); }
+
+function joinMultiRoom() {
+  const code = $('join-input').value;
+  if (code.length !== 4) { $('join-error').textContent = 'Code invalide (4 chiffres requis).'; return; }
+  $('join-error').textContent = '';
+  connectWS();
+  sendWS({ type: 'JOIN_ROOM', code });
+}
+
+function cancelRoom() {
+  G.roomCode = null;
+  G.mode = 'local';
+  showScreen('screen-welcome');
+}
+
+function startWithAIInstead() {
+  // Fallback to local AI if no opponent joins
+  G.mode = 'local';
+  startLocalAIGame();
+}
+
+// ═══════════════════════════════════
+// GAME START (LOCAL / AI)
+// ═══════════════════════════════════
+function startLocalAIGame() {
+  G.mode = 'local';
+  const pool = [...AVATARS];
+  const av1 = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
+  const av2 = pool[Math.floor(Math.random() * pool.length)];
+  const lc = Math.random() < 0.5 ? 'red' : 'blue';
+  const ac = lc === 'red' ? 'blue' : 'red';
+  G.players[lc] = { name: 'YOYO Moi', avatar: av1, local: true };
+  G.players[ac] = { name: 'YOYO IA',  avatar: av2, local: false };
+  G.points = {};
+  G.squares = [];
+  G.scores = { red: 0, blue: 0 };
+  G.turn = 'red';
+  G.timeGame = GAME_SEC;
+  G.timeTurn = TURN_SEC;
+  G.running = true;
+  G.aiWait = false;
+  G.anims = [];
+  G.hover = null;
+  G.roomCode = null;
+  G.myColor = lc;
+  refreshHUD();
+  showScreen('screen-game');
+  initCanvas();
+  startTimers();
+  toast('La partie commence ! 🎮', '#1a3bff');
+}
+
+function refreshHUD() {
+  const r = G.players.red, b = G.players.blue;
+  $('av-r').textContent = r.avatar; $('nm-r').textContent = r.name;
+  $('av-b').textContent = b.avatar; $('nm-b').textContent = b.name;
+  $('e-av-r').textContent = r.avatar; $('e-nm-r').textContent = r.name;
+  $('e-av-b').textContent = b.avatar; $('e-nm-b').textContent = b.name;
+  updateScore();
+  updateActiveIndicator();
+}
+
+// ═══════════════════════════════════
+// CANVAS
+// ═══════════════════════════════════
+function initCanvas() {
+  const wrap = $('canvas-wrap');
+  const old = $('game-canvas');
+  const fresh = old.cloneNode(false);
+  fresh.id = 'game-canvas';
+  wrap.replaceChild(fresh, old);
+  canvas = fresh;
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+  ctx = canvas.getContext('2d');
+  resetView();
+
+  // Desktop
+  canvas.addEventListener('mousedown',  onMD, false);
+  canvas.addEventListener('mousemove',  onMM, false);
+  canvas.addEventListener('mouseup',    onMU, false);
+  canvas.addEventListener('mouseleave', () => { mDrag = false; G.hover = null; }, false);
+  canvas.addEventListener('click',      onCK, false);
+  canvas.addEventListener('wheel',      onWH, { passive: false });
+
+  // Mobile
+  canvas.addEventListener('touchstart',  onTS, { passive: false });
+  canvas.addEventListener('touchmove',   onTM, { passive: false });
+  canvas.addEventListener('touchend',    onTE, { passive: false });
+  canvas.addEventListener('touchcancel', onTE, { passive: false });
+
+  if (animId) cancelAnimationFrame(animId);
+  animId = requestAnimationFrame(render);
+}
+
+function resetView() {
+  if (!canvas) return;
+  G.zoom = 1;
+  G.camX = canvas.width / 2 - (GRID * CELL) / 2;
+  G.camY = canvas.height / 2 - (GRID * CELL) / 2;
+}
+function zoomBtn(f) { if (canvas) applyZoom(f, canvas.width / 2, canvas.height / 2); }
+function applyZoom(f, cx, cy) {
+  const nz = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, G.zoom * f));
+  if (nz === G.zoom) return;
+  G.camX = cx - (cx - G.camX) * (nz / G.zoom);
+  G.camY = cy - (cy - G.camY) * (nz / G.zoom);
+  G.zoom = nz;
+}
+
+// ═══════════════════════════════════
+// RENDER
+// ═══════════════════════════════════
+function render(ts) {
+  animId = requestAnimationFrame(render);
+  if (!canvas) return;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#eef3fc';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.save();
+  ctx.translate(G.camX, G.camY);
+  ctx.scale(G.zoom, G.zoom);
+  drawGrid();
+  drawSquares();
+  drawHoverDot();
+  drawPoints(ts);
+  ctx.restore();
+}
+
+function drawGrid() {
+  const vw = canvas.width / G.zoom, vh = canvas.height / G.zoom;
+  const ox = -G.camX / G.zoom, oy = -G.camY / G.zoom;
+  const x0 = Math.max(0, Math.floor(ox / CELL) - 1);
+  const x1 = Math.min(GRID, Math.ceil((ox + vw) / CELL) + 1);
+  const y0 = Math.max(0, Math.floor(oy / CELL) - 1);
+  const y1 = Math.min(GRID, Math.ceil((oy + vh) / CELL) + 1);
+  ctx.strokeStyle = '#c8d8f0';
+  ctx.lineWidth = 1 / G.zoom;
+  for (let x = x0; x <= x1; x++) { ctx.beginPath(); ctx.moveTo(x * CELL, y0 * CELL); ctx.lineTo(x * CELL, y1 * CELL); ctx.stroke(); }
+  for (let y = y0; y <= y1; y++) { ctx.beginPath(); ctx.moveTo(x0 * CELL, y * CELL); ctx.lineTo(x1 * CELL, y * CELL); ctx.stroke(); }
+}
+
+function drawSquares() {
+  for (const sq of G.squares) {
+    const px = sq.x * CELL, py = sq.y * CELL, isR = sq.color === 'red';
+    ctx.fillStyle = isR ? 'rgba(232,25,44,.12)' : 'rgba(26,59,255,.12)';
+    ctx.fillRect(px, py, CELL, CELL);
+    ctx.strokeStyle = isR ? '#e8192c' : '#1a3bff';
+    ctx.lineWidth = 2.5 / G.zoom;
+    ctx.strokeRect(px + 1 / G.zoom, py + 1 / G.zoom, CELL - 2 / G.zoom, CELL - 2 / G.zoom);
+    ctx.fillStyle = isR ? '#e8192c' : '#1a3bff';
+    ctx.font = `bold ${Math.round(CELL * 0.42)}px "Fredoka One", cursive`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(sq.num, px + CELL / 2, py + CELL / 2);
+  }
+}
+
+function drawHoverDot() {
+  if (!G.hover || !G.running) return;
+  const isLocalTurn = (G.mode === 'local' && G.players[G.turn]?.local) || (G.mode !== 'local' && G.turn === G.myColor);
+  if (!isLocalTurn) return;
+  const { gx, gy } = G.hover;
+  if (G.points[`${gx},${gy}`]) return;
+  ctx.beginPath();
+  ctx.arc(gx * CELL, gy * CELL, 7, 0, Math.PI * 2);
+  ctx.fillStyle = G.turn === 'red' ? 'rgba(232,25,44,.3)' : 'rgba(26,59,255,.3)';
+  ctx.fill();
+}
+
+function drawPoints(ts) {
+  for (const [key, color] of Object.entries(G.points)) {
+    const [gx, gy] = key.split(',').map(Number);
+    dot(gx * CELL, gy * CELL, color, 6);
+  }
+  G.anims = G.anims.filter(a => {
+    const t = Math.min((ts - a.start) / a.dur, 1);
+    const isR = a.color === 'red';
+    if (a.type === 'ripple') {
+      const r = 6 + 18 * t, alp = (1 - t) * 0.65;
+      ctx.beginPath();
+      ctx.arc(a.x * CELL, a.y * CELL, r, 0, Math.PI * 2);
+      ctx.strokeStyle = isR ? `rgba(232,25,44,${alp})` : `rgba(26,59,255,${alp})`;
+      ctx.lineWidth = 2 / G.zoom;
+      ctx.stroke();
+    } else if (a.type === 'sqflash') {
+      const sc = 0.55 + 0.45 * t, alp = t < 0.5 ? t * 2 : 1;
+      ctx.save();
+      ctx.translate(a.x * CELL + CELL / 2, a.y * CELL + CELL / 2);
+      ctx.scale(sc, sc);
+      ctx.strokeStyle = isR ? `rgba(232,25,44,${alp})` : `rgba(26,59,255,${alp})`;
+      ctx.lineWidth = 4 / G.zoom;
+      ctx.strokeRect(-CELL / 2, -CELL / 2, CELL, CELL);
+      ctx.restore();
+    }
+    return t < 1;
+  });
+}
+
+function dot(px, py, color, r) {
+  ctx.beginPath();
+  ctx.arc(px, py, r, 0, Math.PI * 2);
+  ctx.fillStyle = color === 'red' ? '#e8192c' : '#1a3bff';
+  ctx.fill();
+  ctx.beginPath();
+  ctx.arc(px, py, r * 0.35, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255,255,255,.5)';
+  ctx.fill();
+}
+
+// ═══════════════════════════════════
+// MOUSE
+// ═══════════════════════════════════
+let mDrag = false, mMoved = false, mX0 = 0, mY0 = 0, mCX0 = 0, mCY0 = 0;
+
+function onMD(e) {
+  mDrag = true; mMoved = false;
+  mX0 = e.clientX; mY0 = e.clientY; mCX0 = G.camX; mCY0 = G.camY;
+}
+function onMM(e) {
+  const r = canvas.getBoundingClientRect();
+  G.hover = {
+    gx: Math.round((e.clientX - r.left - G.camX) / G.zoom / CELL),
+    gy: Math.round((e.clientY - r.top - G.camY) / G.zoom / CELL)
+  };
+  if (!mDrag) return;
+  const dx = e.clientX - mX0, dy = e.clientY - mY0;
+  if (Math.abs(dx) > 8 || Math.abs(dy) > 8) mMoved = true;
+  G.camX = mCX0 + dx;
+  G.camY = mCY0 + dy;
+}
+function onMU() { mDrag = false; }
+function onCK(e) { if (mMoved) { mMoved = false; return; } placeTap(e.clientX, e.clientY); }
+function onWH(e) {
+  e.preventDefault();
+  const r = canvas.getBoundingClientRect();
+  applyZoom(e.deltaY < 0 ? 1.13 : 1 / 1.13, e.clientX - r.left, e.clientY - r.top);
+}
+
+// ═══════════════════════════════════
+// TOUCH
+// ═══════════════════════════════════
+let touchMoved = false, wasMulti = false;
+let tPanX0 = 0, tPanY0 = 0, tCamX0 = 0, tCamY0 = 0;
+let tPinch0 = null, tPinchCX = 0, tPinchCY = 0;
+
+function onTS(e) {
+  e.preventDefault();
+  const n = e.touches.length;
+  if (n === 1 && !wasMulti) {
+    const t = e.touches[0];
+    touchMoved = false;
+    tPanX0 = t.clientX; tPanY0 = t.clientY;
+    tCamX0 = G.camX; tCamY0 = G.camY;
+  } else {
+    wasMulti = true; touchMoved = true;
+    if (n >= 2) {
+      tPinch0 = pinchD(e.touches[0], e.touches[1]);
+      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
+      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
+      tPinchCX = cx; tPinchCY = cy;
+      tPanX0 = cx; tPanY0 = cy;
+      tCamX0 = G.camX; tCamY0 = G.camY;
+    }
+  }
+}
+
+function onTM(e) {
+  e.preventDefault();
+  const n = e.touches.length;
+  if (n === 1 && !wasMulti) {
+    const t = e.touches[0];
+    const dx = t.clientX - tPanX0, dy = t.clientY - tPanY0;
+    if (Math.abs(dx) > TAP_SLOP || Math.abs(dy) > TAP_SLOP) touchMoved = true;
+    G.camX = tCamX0 + dx; G.camY = tCamY0 + dy;
+  } else if (n >= 2) {
+    wasMulti = true; touchMoved = true;
+    const t0 = e.touches[0], t1 = e.touches[1];
+    const dist = pinchD(t0, t1);
+    const cx = (t0.clientX + t1.clientX) / 2;
+    const cy = (t0.clientY + t1.clientY) / 2;
+    const r = canvas.getBoundingClientRect();
+    if (tPinch0) applyZoom(dist / tPinch0, cx - r.left, cy - r.top);
+    tPinch0 = dist;
+    G.camX = tCamX0 + (cx - tPanX0);
+    G.camY = tCamY0 + (cy - tPanY0);
+  }
+}
+
+function onTE(e) {
+  e.preventDefault();
+  if (e.touches.length === 0 && !wasMulti && !touchMoved) {
+    const t = e.changedTouches[0];
+    placeTap(t.clientX, t.clientY);
+  }
+  if (e.touches.length === 0) {
+    wasMulti = false; touchMoved = false; tPinch0 = null;
+  } else if (e.touches.length === 1) {
+    wasMulti = true;
+    const t = e.touches[0];
+    tPanX0 = t.clientX; tPanY0 = t.clientY;
+    tCamX0 = G.camX; tCamY0 = G.camY;
+    tPinch0 = null;
+  }
+}
+
+function pinchD(t0, t1) { return Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY); }
+
+// ═══════════════════════════════════
+// PLACEMENT
+// ═══════════════════════════════════
+function placeTap(cx, cy) {
+  if (!G.running) return;
+  // Check if it's our turn
+  const isLocalTurn = (G.mode === 'local' && G.players[G.turn]?.local) || (G.mode !== 'local' && G.turn === G.myColor);
+  if (!isLocalTurn) return;
+
+  const r = canvas.getBoundingClientRect();
+  const gx = Math.round((cx - r.left - G.camX) / G.zoom / CELL);
+  const gy = Math.round((cy - r.top - G.camY) / G.zoom / CELL);
+  if (gx < 0 || gy < 0 || gx > GRID || gy > GRID) return;
+
+  // In multi mode, send to server
+  if (G.mode === 'multi' || G.mode === 'ai-server') {
+    if (G.points[`${gx},${gy}`]) return;
+    sendWS({ type: 'PLACE_POINT', x: gx, y: gy });
+    return;
   }
 
-  // Start
-  init();
+  // Local mode
+  placePointLocal(gx, gy, G.turn);
+}
+
+function placePointLocal(gx, gy, color) {
+  const key = `${gx},${gy}`;
+  if (G.points[key]) return;
+  G.points[key] = color;
+  G.anims.push({ type: 'ripple', x: gx, y: gy, color, start: performance.now(), dur: 450 });
+  const newSq = detectSquaresLocal(gx, gy, color);
+  if (newSq.length) {
+    G.scores[color] += newSq.length;
+    for (const sq of newSq) {
+      sq.num = G.squares.length + 1;
+      G.squares.push(sq);
+      G.anims.push({ type: 'sqflash', x: sq.x, y: sq.y, color, start: performance.now(), dur: 600 });
+    }
+    updateScore();
+    const n = G.players[color].name, s = newSq.length;
+    toast(`${n} forme ${s} carré${s > 1 ? 's' : ''} ! +${s}`, color === 'red' ? '#e8192c' : '#1a3bff');
+  }
+  nextTurnLocal();
+}
+
+function detectSquaresLocal(gx, gy, color) {
+  const found = [];
+  for (const [dx, dy] of [[0, 0], [-1, 0], [0, -1], [-1, -1]]) {
+    const x = gx + dx, y = gy + dy;
+    if (G.points[`${x},${y}`] === color &&
+        G.points[`${x + 1},${y}`] === color &&
+        G.points[`${x},${y + 1}`] === color &&
+        G.points[`${x + 1},${y + 1}`] === color) {
+      if (!G.squares.some(s => s.x === x && s.y === y && s.color === color))
+        found.push({ x, y, color });
+    }
+  }
+  return found;
+}
+
+function nextTurnLocal() {
+  G.turn = G.turn === 'red' ? 'blue' : 'red';
+  G.timeTurn = TURN_SEC;
+  updateTurnBar();
+  updateActiveIndicator();
+  if (!G.players[G.turn].local && G.running && G.mode === 'local') {
+    G.aiWait = true;
+    setTimeout(aiMoveLocal, 700 + Math.random() * 1100);
+  }
+}
+
+// ═══════════════════════════════════
+// LOCAL AI (unchanged, preserved)
+// ═══════════════════════════════════
+function aiMoveLocal() {
+  if (!G.running) return;
+  G.aiWait = false;
+  const c = G.turn;
+  const mv = bestMoveLocal(c) || bestMoveLocal(c === 'red' ? 'blue' : 'red') || setupMoveLocal(c) || randomMoveLocal();
+  if (mv) placePointLocal(mv.x, mv.y, c);
+}
+function bestMoveLocal(c) {
+  for (let x = 0; x <= GRID; x++)
+    for (let y = 0; y <= GRID; y++) {
+      const k = `${x},${y}`; if (G.points[k]) continue;
+      G.points[k] = c; const sq = detectSquaresLocal(x, y, c); delete G.points[k];
+      if (sq.length) return { x, y };
+    }
+  return null;
+}
+function setupMoveLocal(c) {
+  const cands = [];
+  for (let x = 0; x <= GRID; x++)
+    for (let y = 0; y <= GRID; y++) {
+      if (G.points[`${x},${y}`]) continue;
+      let sc = 0;
+      for (const [dx, dy] of [[0, 0], [-1, 0], [0, -1], [-1, -1]]) {
+        const bx = x + dx, by = y + dy; let n = 0;
+        for (const [ex, ey] of [[0, 0], [1, 0], [0, 1], [1, 1]])
+          if (G.points[`${bx + ex},${by + ey}`] === c) n++;
+        if (n === 2) sc += 2; if (n === 3) sc += 6;
+      }
+      if (sc > 0) cands.push({ x, y, sc });
+    }
+  if (!cands.length) return null;
+  cands.sort((a, b) => b.sc - a.sc);
+  return cands[0];
+}
+function randomMoveLocal() {
+  const keys = Object.keys(G.points);
+  if (!keys.length) return { x: Math.floor(GRID / 2), y: Math.floor(GRID / 2) };
+  for (let i = 0; i < 50; i++) {
+    const [px, py] = keys[Math.floor(Math.random() * keys.length)].split(',').map(Number);
+    const nx = Math.max(0, Math.min(GRID, px + Math.floor(Math.random() * 7) - 3));
+    const ny = Math.max(0, Math.min(GRID, py + Math.floor(Math.random() * 7) - 3));
+    if (!G.points[`${nx},${ny}`]) return { x: nx, y: ny };
+  }
+  return null;
+}
+
+// ═══════════════════════════════════
+// TIMERS
+// ═══════════════════════════════════
+function startTimers() {
+  clearInterval(timerGame);
+  clearInterval(timerTurn);
+  timerGame = setInterval(() => {
+    if (!G.running) return;
+    G.timeGame--;
+    updateGlobalTimer();
+    if (G.timeGame <= 0) endGame('time');
+  }, 1000);
+  timerTurn = setInterval(() => {
+    if (!G.running || G.aiWait) return;
+    G.timeTurn--;
+    updateTurnBar();
+    if (G.timeTurn <= 0) {
+      toast('⏰ Temps écoulé — tour suivant !', '#6680aa');
+      if (G.mode === 'local') {
+        nextTurnLocal();
+      }
+      // In multi mode, server handles turn skip
+    }
+  }, 1000);
+}
+function updateGlobalTimer() {
+  const m = String(Math.floor(G.timeGame / 60)).padStart(2, '0');
+  const s = String(G.timeGame % 60).padStart(2, '0');
+  const el = $('global-timer');
+  el.textContent = `${m}:${s}`;
+  el.style.color = G.timeGame <= 60 ? '#e8192c' : '#1a2a4a';
+}
+function updateTurnBar() {
+  const pct = (G.timeTurn / TURN_SEC) * 100;
+  const bar = $('turn-bar');
+  bar.style.width = pct + '%';
+  bar.style.background = pct > 50 ? '#4dde80' : pct > 25 ? '#ffc107' : '#e8192c';
+  $('turn-num').textContent = G.timeTurn;
+}
+function updateScore() {
+  $('pt-r').textContent = String(G.scores.red).padStart(2, '0');
+  $('pt-b').textContent = String(G.scores.blue).padStart(2, '0');
+  $('e-pt-r').textContent = G.scores.red;
+  $('e-pt-b').textContent = G.scores.blue;
+}
+function updateActiveIndicator() {
+  const player = G.turn === 'red' ? G.players.red : G.players.blue;
+  $('active-name').textContent = player?.name || 'Joueur';
+  $('active-dot').style.background = G.turn === 'red' ? 'var(--red)' : 'var(--blue)';
+}
+
+// ═══════════════════════════════════
+// END
+// ═══════════════════════════════════
+function endGame(reason) {
+  G.running = false;
+  clearInterval(timerGame);
+  clearInterval(timerTurn);
+  const rs = G.scores.red, bs = G.scores.blue;
+  let title, sub;
+  if (reason === 'abandon') {
+    title = `🏳️ ${G.players[G.turn]?.name || 'Joueur'} abandonne`;
+    sub = 'Fin de partie prématurée';
+  } else if (reason === 'win') {
+    title = '🏆 Vous avez gagné !';
+    sub = `Victoire — ${G.scores[G.myColor]} carré(s)`;
+  } else if (reason === 'lose') {
+    title = '😔 Défaite';
+    sub = `L'adversaire a gagné`;
+  } else if (rs > bs) {
+    title = `🏆 ${G.players.red.name} gagne !`;
+    sub = `Victoire rouge — ${rs} carré${rs > 1 ? 's' : ''}`;
+  } else if (bs > rs) {
+    title = `🏆 ${G.players.blue.name} gagne !`;
+    sub = `Victoire bleue — ${bs} carré${bs > 1 ? 's' : ''}`;
+  } else {
+    title = '🤝 Égalité !';
+    sub = `Les deux joueurs finissent à ${rs} carré${rs > 1 ? 's' : ''}`;
+  }
+  $('end-title').textContent = title;
+  $('end-sub').textContent = sub;
+  updateScore();
+  setTimeout(() => showScreen('screen-end'), 600);
+}
+function abandonGame() {
+  if (!G.running) return;
+  if (confirm('Abandonner la partie en cours ?')) {
+    if (G.mode === 'multi' || G.mode === 'ai-server') {
+      sendWS({ type: 'ABANDON' });
+    }
+    endGame('abandon');
+  }
+}
+
+// ═══════════════════════════════════
+// TOAST
+// ═══════════════════════════════════
+let toastTO;
+function toast(msg, color = '#1a3bff') {
+  const el = $('notif');
+  el.textContent = msg;
+  el.style.color = color;
+  el.style.borderLeft = `4px solid ${color}`;
+  el.classList.add('show');
+  clearTimeout(toastTO);
+  toastTO = setTimeout(() => el.classList.remove('show'), 2800);
+}
+
+// ═══════════════════════════════════
+// RESIZE
+// ═══════════════════════════════════
+window.addEventListener('resize', () => {
+  if (!canvas) return;
+  const wrap = $('canvas-wrap');
+  canvas.width = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+});
+
+// ═══════════════════════════════════
+// MODAL
+// ═══════════════════════════════════
+function openModal() { $('modal-how').classList.add('open'); }
+function closeModal() { $('modal-how').classList.remove('open'); }
+$('modal-how').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+
+// ═══════════════════════════════════
+// INIT
+// ═══════════════════════════════════
+connectWS();
+// Keepalive ping
+setInterval(() => {
+  if (G.ws?.readyState === WebSocket.OPEN) sendWS({ type: 'PING' });
+}, 30000);
 </script>
 </body>
 </html>
