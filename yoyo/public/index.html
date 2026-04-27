@@ -1221,6 +1221,11 @@ function onMsg(msg) {
       }
       updateHUD();
       schedDraw();
+
+      /* AI move if it's AI's turn */
+      if(gameMode==='ai' && gstate.turn !== myColor && !gstate.gameOver) {
+        setTimeout(aiMove, 700 + Math.random()*1100);
+      }
       break;
     }
 
@@ -1270,6 +1275,72 @@ function showGameOver(msg) {
     $('go-trophy').textContent='😔'; $('go-title').textContent='Défaite…';
     $('go-sub').textContent='L\'adversaire a gagné cette fois !';
   }
+}
+
+/* ═══════════════════════════════════════════════
+   AI LOGIC (improved from yoyo(1).html)
+═══════════════════════════════════════════════ */
+function aiMove(){
+  if(!gstate.running) return;
+  const c = gstate.turn;
+  const mv = bestMove(c) || bestMove(c==='red'?'blue':'red') || setupMove(c) || randomMove();
+  if(mv) placePoint(mv.x * CELL, mv.y * CELL);
+}
+
+function bestMove(c){
+  for(let x=0; x<=GRID; x++) for(let y=0; y<=GRID; y++){
+    const k=`${x},${y}`; if(gstate.points.find(p=>p.x===x&&p.y===y)) continue;
+    // Simulate placement
+    gstate.points.push({x,y,color:c});
+    const sq = detectSquares(x,y,c);
+    gstate.points.pop();
+    if(sq.length) return {x,y};
+  }
+  return null;
+}
+
+function setupMove(c){
+  const cands = [];
+  for(let x=0; x<=GRID; x++) for(let y=0; y<=GRID; y++){
+    if(gstate.points.find(p=>p.x===x&&p.y===y)) continue;
+    let sc = 0;
+    for(const [dx,dy] of [[0,0],[-1,0],[0,-1],[-1,-1]]){
+      const bx=x+dx, by=y+dy; let n=0;
+      for(const [ex,ey] of [[0,0],[1,0],[0,1],[1,1]])
+        if(gstate.points.find(p=>p.x===bx+ex&&p.y===by+ey&&p.color===c)) n++;
+      if(n===2) sc+=2; if(n===3) sc+=6;
+    }
+    if(sc>0) cands.push({x,y,sc});
+  }
+  if(!cands.length) return null;
+  cands.sort((a,b)=>b.sc-a.sc); return cands[0];
+}
+
+function randomMove(){
+  const pts = gstate.points;
+  if(!pts.length) return {x:Math.floor(GRID/2),y:Math.floor(GRID/2)};
+  for(let i=0; i<50; i++){
+    const p = pts[Math.floor(Math.random()*pts.length)];
+    const nx = Math.max(0, Math.min(GRID, p.x + Math.floor(Math.random()*7)-3));
+    const ny = Math.max(0, Math.min(GRID, p.y + Math.floor(Math.random()*7)-3));
+    if(!gstate.points.find(pt=>pt.x===nx&&pt.y===ny)) return {x:nx,y:ny};
+  }
+  return null;
+}
+
+function detectSquares(gx,gy,color){
+  const found = [];
+  for(const [dx,dy] of [[0,0],[-1,0],[0,-1],[-1,-1]]){
+    const x=gx+dx, y=gy+dy;
+    if(gstate.points.find(p=>p.x===x&&p.y===y&&p.color===color) &&
+       gstate.points.find(p=>p.x===x+1&&p.y===y&&p.color===color) &&
+       gstate.points.find(p=>p.x===x&&p.y===y+1&&p.color===color) &&
+       gstate.points.find(p=>p.x===x+1&&p.y===y+1&&p.color===color)){
+      if(!gstate.squares.find(s=>s.x===x&&s.y===y&&s.color===color))
+        found.push({x,y,color});
+    }
+  }
+  return found;
 }
 
 /* ═══════════════════════════════════════════════
