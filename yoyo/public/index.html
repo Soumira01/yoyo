@@ -1,275 +1,394 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="theme-color" content="#eef3fc">
-  <title>YOYO — Le jeu des carrés</title>
-  <meta name="description" content="YOYO — Jeu stratégique multijoueur. Formez des carrés sur la grille avant votre adversaire !">
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800;900&display=swap');
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#eef3fc">
+<title>YOYO — Le jeu des carrés</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
 
-    :root {
-      --red: #e8192c;
-      --blue: #1a3bff;
-      --red-l: rgba(232, 25, 44, 0.13);
-      --blue-l: rgba(26, 59, 255, 0.13);
-      --grid: #c8d8f0;
-      --bg: #eef3fc;
-      --bar-h: 56px;
-    }
-    @media (max-width: 600px) {
-      :root { --bar-h: 48px; }
-    }
+:root {
+  --red:    #e8192c;
+  --blue:   #1a3bff;
+  --red-l:  rgba(232,25,44,.13);
+  --blue-l: rgba(26,59,255,.13);
+  --grid:   #c8d8f0;
+  --bg:     #eef3fc;
+  --bar-h:  56px;
+}
+/* Sur mobile le HUD passe en 2 lignes → hauteur doublée */
+@media(max-width:600px){ :root{ --bar-h:96px; } }
 
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    html, body {
-      width: 100%; height: 100%;
-      overflow: hidden;
-      touch-action: manipulation;
-      user-select: none;
-      -webkit-user-select: none;
-      -webkit-tap-highlight-color: transparent;
-      font-family: 'Nunito', sans-serif;
-      background: var(--bg);
-    }
+*,*::before,*::after{ margin:0; padding:0; box-sizing:border-box; }
+html,body{
+  width:100%; height:100%;
+  overflow:hidden;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  font-family:'Nunito',sans-serif;
+  background:var(--bg);
+}
 
-    /* ── SCREENS ────────────────────────── */
-    .screen { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; }
-    .screen.active { display: flex; }
-    .grid-bg {
-      background: var(--bg)
-        linear-gradient(var(--grid) 1px, transparent 1px),
-        linear-gradient(90deg, var(--grid) 1px, transparent 1px);
-      background-size: 40px 40px;
-    }
+/* ── SCREENS ─────────────────────────────── */
+.screen{ position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; }
+.screen.active{ display:flex; }
+.grid-bg{
+  background:var(--bg)
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:40px 40px;
+}
 
-    /* ── BUTTONS ────────────────────────── */
-    .btn {
-      font-family: 'Nunito', sans-serif; font-weight: 800; font-size: 15px;
-      padding: 13px 26px; border: none; border-radius: 50px; cursor: pointer;
-      transition: transform 0.15s, box-shadow 0.15s; letter-spacing: 0.4px; white-space: nowrap;
-      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
-      display: inline-flex; align-items: center; gap: 6px;
-    }
-    .btn:hover { transform: translateY(-3px); }
-    .btn:active { transform: translateY(1px); }
-    .btn-green { background: #4dde80; color: #1a5c33; box-shadow: 0 4px 0 #28a455; }
-    .btn-green:hover { box-shadow: 0 7px 0 #28a455; }
-    .btn-purple { background: #b16bff; color: #fff; box-shadow: 0 4px 0 #7a3db8; }
-    .btn-purple:hover { box-shadow: 0 7px 0 #7a3db8; }
-    .btn-red { background: var(--red); color: #fff; box-shadow: 0 4px 0 #9c0f1c; }
-    .btn-red:hover { box-shadow: 0 7px 0 #9c0f1c; }
-    .btn-blue { background: var(--blue); color: #fff; box-shadow: 0 4px 0 #0f20b8; }
-    .btn-blue:hover { box-shadow: 0 7px 0 #0f20b8; }
-    .btn-gray { background: #ccd4e8; color: #4a5568; box-shadow: 0 4px 0 #9aa4bc; }
-    .btn-gray:hover { box-shadow: 0 7px 0 #9aa4bc; }
-    .btn-sm { font-size: 12px; padding: 7px 14px; }
-    .btn-xs { font-size: 11px; padding: 6px 12px; border-radius: 30px; }
-    .btn-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+/* ── BUTTONS ─────────────────────────────── */
+.btn{
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:15px;
+  padding:13px 26px; border:none; border-radius:50px; cursor:pointer;
+  transition:transform .15s,box-shadow .15s; letter-spacing:.4px; white-space:nowrap;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+}
+.btn:hover { transform:translateY(-3px); }
+.btn:active{ transform:translateY(1px);  }
+.btn-green { background:#4dde80; color:#1a5c33; box-shadow:0 4px 0 #28a455; }
+.btn-green:hover  { box-shadow:0 7px 0 #28a455; }
+.btn-purple{ background:#b16bff; color:#fff;    box-shadow:0 4px 0 #7a3db8; }
+.btn-purple:hover { box-shadow:0 7px 0 #7a3db8; }
+.btn-red   { background:var(--red);  color:#fff; box-shadow:0 4px 0 #9c0f1c; }
+.btn-red:hover    { box-shadow:0 7px 0 #9c0f1c; }
+.btn-blue  { background:var(--blue); color:#fff; box-shadow:0 4px 0 #0f20b8; }
+.btn-blue:hover   { box-shadow:0 7px 0 #0f20b8; }
+.btn-gray  { background:#ccd4e8; color:#4a5568; box-shadow:0 4px 0 #9aa4bc; }
+.btn-gray:hover   { box-shadow:0 7px 0 #9aa4bc; }
+.btn-sm{ font-size:12px; padding:7px 14px; }
+.btn-row{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
 
-    /* ── WELCOME ────────────────────────── */
-    .logo {
-      font-family: 'Fredoka One', cursive;
-      font-size: clamp(52px, 12vw, 90px);
-      color: var(--red); letter-spacing: 6px;
-      text-shadow: 4px 4px 0 rgba(232, 25, 44, 0.2);
-      animation: bounce 2.4s ease-in-out infinite;
-    }
-    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-    .subtitle {
-      font-size: clamp(13px, 3vw, 18px); color: #6680aa; font-weight: 600;
-      margin: 6px 0 40px; text-align: center; padding: 0 16px;
-    }
-    .help-link {
-      position: absolute; top: 16px; right: 18px;
-      font-size: 13px; color: var(--blue); cursor: pointer; font-weight: 700; text-decoration: underline;
-    }
+/* ── WELCOME ─────────────────────────────── */
+/* La grille CSS reste en fond, on superpose des carrés déco via canvas */
+#screen-welcome{ overflow:hidden; }
+#home-canvas{
+  position:absolute; inset:0;
+  pointer-events:none; z-index:0;
+}
+.home-content{
+  position:relative; z-index:1;
+  display:flex; flex-direction:column; align-items:center;
+}
+.logo{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(52px,12vw,90px);
+  color:var(--red); letter-spacing:6px;
+  text-shadow:4px 4px 0 rgba(232,25,44,.2);
+  animation:logobounce 2.4s ease-in-out infinite;
+}
+@keyframes logobounce{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.subtitle{
+  font-size:clamp(13px,3vw,18px); color:#6680aa; font-weight:600;
+  margin:6px 0 40px; text-align:center; padding:0 16px;
+}
+.help-link{
+  position:absolute; top:16px; right:18px; z-index:2;
+  font-size:13px; color:var(--blue); cursor:pointer; font-weight:700; text-decoration:underline;
+}
 
-    .connection-status {
-      position: absolute; top: 16px; left: 18px;
-      display: flex; align-items: center; gap: 6px;
-      font-size: 11px; font-weight: 700; color: #6680aa;
-    }
-    .conn-dot { width: 8px; height: 8px; border-radius: 50%; background: #ffc107; }
-    .conn-dot.online { background: #4dde80; }
-    .conn-dot.offline { background: #ff4757; }
+/* ── CARD ────────────────────────────────── */
+.card{
+  background:#fff; border-radius:22px;
+  padding:clamp(24px,6vw,44px) clamp(20px,8vw,52px);
+  box-shadow:0 8px 32px rgba(26,59,255,.12);
+  text-align:center; max-width:420px; width:92%;
+}
+.card h2{ font-family:'Fredoka One',cursive; font-size:clamp(22px,5vw,28px); color:#1a2a4a; margin-bottom:16px; }
+.card p { color:#6680aa; font-size:14px; font-weight:600; margin-bottom:10px; }
+.game-code{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(40px,10vw,58px); color:var(--red);
+  letter-spacing:12px; margin:16px 0;
+  text-shadow:2px 2px 0 rgba(232,25,44,.2);
+}
+.code-input{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(28px,8vw,40px); letter-spacing:8px;
+  text-align:center; width:min(210px,80%);
+  border:3px solid var(--grid); border-radius:12px;
+  padding:10px; color:var(--blue); outline:none;
+  transition:border-color .2s; touch-action:manipulation;
+  background:#fff;
+}
+.code-input:focus{ border-color:var(--blue); }
+@keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.4} }
+.pulse{ animation:pulse 1.5s ease-in-out infinite; }
+.err-msg{ color:var(--red); font-size:13px; font-weight:700; min-height:18px; margin-top:8px; }
 
-    /* ── CARD ───────────────────────────── */
-    .card {
-      background: #fff; border-radius: 22px;
-      padding: clamp(24px, 6vw, 44px) clamp(20px, 8vw, 52px);
-      box-shadow: 0 8px 32px rgba(26, 59, 255, 0.12);
-      text-align: center; max-width: 420px; width: 92%;
-    }
-    .card h2 { font-family: 'Fredoka One', cursive; font-size: clamp(22px, 5vw, 28px); color: #1a2a4a; margin-bottom: 16px; }
-    .card p { color: #6680aa; font-size: 14px; font-weight: 600; margin-bottom: 10px; }
-    .game-code {
-      font-family: 'Fredoka One', cursive;
-      font-size: clamp(40px, 10vw, 58px); color: var(--red);
-      letter-spacing: 12px; margin: 16px 0;
-      text-shadow: 2px 2px 0 rgba(232, 25, 44, 0.2);
-    }
-    .code-input {
-      font-family: 'Fredoka One', cursive;
-      font-size: clamp(28px, 8vw, 40px); letter-spacing: 8px;
-      text-align: center; width: min(210px, 80%);
-      border: 3px solid var(--grid); border-radius: 12px;
-      padding: 10px; color: var(--blue); outline: none;
-      transition: border-color 0.2s; touch-action: manipulation;
-    }
-    .code-input:focus { border-color: var(--blue); }
-    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-    .pulse { animation: pulse 1.5s ease-in-out infinite; }
+/* Waiting dots */
+.wait-dots span{
+  display:inline-block; font-size:1.4rem;
+  animation:wdot .7s infinite;
+}
+.wait-dots span:nth-child(2){ animation-delay:.15s; }
+.wait-dots span:nth-child(3){ animation-delay:.3s; }
+@keyframes wdot{ 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-7px)} }
 
-    /* ── GAME SCREEN ────────────────────── */
-    #screen-game { background: var(--bg); flex-direction: column; align-items: stretch; overflow: hidden; }
+/* ── GAME SCREEN ─────────────────────────── */
+#screen-game{ background:var(--bg); flex-direction:column; align-items:stretch; overflow:hidden; }
 
-    /* Top bar */
-    #top-bar {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 6px 12px;
-      background: rgba(238, 243, 252, 0.97); backdrop-filter: blur(8px);
-      border-bottom: 2px solid var(--grid);
-      flex-shrink: 0; z-index: 20; gap: 8px; flex-wrap: nowrap;
-      height: var(--bar-h); overflow: hidden;
-    }
-    .top-logo { font-family: 'Fredoka One', cursive; font-size: clamp(20px, 4vw, 30px); color: var(--red); flex-shrink: 0; }
+/* ── TOP BAR — Desktop: 1 ligne, Mobile: 2 lignes ── */
+#top-bar{
+  display:flex; align-items:center;
+  padding:0 12px;
+  background:rgba(238,243,252,.97); backdrop-filter:blur(8px);
+  border-bottom:2px solid var(--grid);
+  flex-shrink:0; z-index:20;
+  height:var(--bar-h);
+  /* Desktop: tous les éléments côte à côte */
+  flex-wrap:nowrap; gap:8px;
+  overflow:hidden;
+}
+.top-logo{ font-family:'Fredoka One',cursive; font-size:clamp(20px,4vw,30px); color:var(--red); flex-shrink:0; }
 
-    .active-pill {
-      display: flex; align-items: center; gap: 6px;
-      background: #fff; border-radius: 20px; padding: 4px 11px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-      font-weight: 800; font-size: clamp(11px, 2vw, 14px); flex-shrink: 0;
-    }
-    .active-dot { width: 10px; height: 10px; border-radius: 50%; animation: blink 1s ease-in-out infinite; }
-    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.2; } }
+.active-pill{
+  display:flex; align-items:center; gap:6px;
+  background:#fff; border-radius:20px; padding:4px 11px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  font-weight:800; font-size:clamp(11px,2vw,14px); flex-shrink:0;
+  white-space:nowrap;
+}
+.active-dot{
+  width:10px; height:10px; border-radius:50%;
+  animation:blink 1s ease-in-out infinite;
+  flex-shrink:0;
+}
+@keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.2} }
 
-    .timers { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; }
-    .global-timer {
-      font-family: 'Fredoka One', cursive;
-      font-size: clamp(16px, 3.5vw, 22px); color: #1a2a4a;
-      background: #fff; padding: 3px 12px; border-radius: 20px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08); min-width: 68px; text-align: center;
-    }
-    .turn-wrap { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 700; color: #6680aa; }
-    .turn-bar-bg { width: 60px; height: 6px; background: #e0e8ff; border-radius: 3px; overflow: hidden; }
-    #turn-bar { height: 100%; border-radius: 3px; background: #4dde80; transition: width 1s linear, background 0.4s; }
-    #turn-num { font-family: 'Fredoka One', cursive; font-size: 14px; }
+.timers{ display:flex; flex-direction:column; align-items:center; gap:3px; flex-shrink:0; }
+.global-timer{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(16px,3.5vw,22px); color:#1a2a4a;
+  background:#fff; padding:3px 12px; border-radius:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08); min-width:68px; text-align:center;
+}
+.turn-wrap{ display:flex; align-items:center; gap:4px; font-size:11px; font-weight:700; color:#6680aa; }
+.turn-bar-bg{ width:60px; height:6px; background:#e0e8ff; border-radius:3px; overflow:hidden; }
+#turn-bar{ height:100%; border-radius:3px; background:#4dde80; transition:width 1s linear,background .4s; }
+#turn-num{ font-family:'Fredoka One',cursive; font-size:14px; }
 
-    .scores { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; flex-shrink: 0; }
-    .score-label { font-family: 'Fredoka One', cursive; font-size: 11px; color: var(--blue); }
-    .score-row { display: flex; align-items: center; gap: 5px; }
-    .score-row .av { font-size: clamp(13px, 2.5vw, 17px); }
-    .score-row .nm { font-size: clamp(10px, 1.8vw, 13px); font-weight: 700; max-width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .score-row .pt { font-family: 'Fredoka One', cursive; font-size: clamp(14px, 2.5vw, 18px); min-width: 22px; text-align: right; }
-    .score-row.r .nm, .score-row.r .pt { color: var(--red); }
-    .score-row.b .nm, .score-row.b .pt { color: var(--blue); }
+.scores{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex-shrink:0; }
+.score-label{ font-family:'Fredoka One',cursive; font-size:11px; color:var(--blue); }
+.score-row{ display:flex; align-items:center; gap:5px; }
+.score-row .av{ font-size:clamp(13px,2.5vw,17px); }
+.score-row .nm{ font-size:clamp(10px,1.8vw,13px); font-weight:700; max-width:60px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.score-row .pt{ font-family:'Fredoka One',cursive; font-size:clamp(14px,2.5vw,18px); min-width:22px; text-align:right; }
+.score-row.r .nm,.score-row.r .pt{ color:var(--red);  }
+.score-row.b .nm,.score-row.b .pt{ color:var(--blue); }
 
-    .zoom-btns { display: flex; gap: 3px; flex-shrink: 0; }
-    .zbtn {
-      width: 30px; height: 30px; border-radius: 8px; border: none;
-      background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-      color: #3a4a6a; font-size: 16px; font-weight: 700; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s, transform 0.1s;
-      -webkit-tap-highlight-color: transparent; touch-action: manipulation;
-    }
-    .zbtn:hover { background: #e0e8ff; transform: scale(1.1); }
-    .zbtn:active { transform: scale(0.95); }
+.zoom-btns{ display:flex; gap:3px; flex-shrink:0; }
+.zbtn{
+  width:30px; height:30px; border-radius:8px; border:none;
+  background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.1);
+  color:#3a4a6a; font-size:16px; font-weight:700; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s,transform .1s;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+}
+.zbtn:hover { background:#e0e8ff; transform:scale(1.1); }
+.zbtn:active{ transform:scale(.95); }
 
-    #canvas-wrap { flex: 1; overflow: hidden; position: relative; cursor: crosshair; touch-action: none; }
-    #game-canvas { position: absolute; top: 0; left: 0; display: block; }
+#canvas-wrap{ flex:1; overflow:hidden; position:relative; cursor:crosshair; touch-action:none; }
+#game-canvas{ position:absolute; top:0; left:0; display:block; }
 
-    /* Mobile: hide non-essential turn bar */
-    @media (max-width: 480px) {
-      #top-bar { padding: 4px 8px; gap: 5px; }
-      .active-pill span:last-child { display: none; }
-      .turn-wrap { display: none; }
-    }
+/* ── hud-break et hud-row2 masqués sur desktop ── */
+.hud-break{ display:none; }
+.hud-row2 { display:none; }
 
-    /* ── TOAST ──────────────────────────── */
-    #notif {
-      position: fixed; top: calc(var(--bar-h) + 8px); left: 50%;
-      transform: translateX(-50%) translateY(-12px);
-      background: #fff; border-radius: 12px; padding: 8px 20px;
-      font-weight: 800; font-size: clamp(13px, 3vw, 15px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.13);
-      opacity: 0; transition: opacity 0.25s, transform 0.25s;
-      pointer-events: none; z-index: 100;
-      white-space: nowrap; max-width: 92vw; overflow: hidden; text-overflow: ellipsis;
-    }
-    #notif.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* Sur mobile: ligne 1 allégée + ligne 2 visible */
+@media(max-width:600px){
+  /* Masquer les éléments desktop qui passent en ligne 2 */
+  #scores-desk{ display:none; }
+  #top-bar > .zoom-btns{ display:none; }
+  #top-bar > .btn-red{ display:none; }
 
-    /* ── END SCREEN ─────────────────────── */
-    .end-card {
-      background: #fff; border-radius: 24px;
-      padding: clamp(28px, 6vw, 48px) clamp(24px, 8vw, 64px);
-      box-shadow: 0 12px 48px rgba(26, 59, 255, 0.12);
-      text-align: center; max-width: 480px; width: 92%;
-    }
-    .end-title { font-family: 'Fredoka One', cursive; font-size: clamp(32px, 8vw, 48px); margin-bottom: 6px; }
-    .end-sub { color: #6680aa; font-size: 15px; font-weight: 700; margin-bottom: 24px; }
-    .end-scores { display: flex; gap: 20px; justify-content: center; margin-bottom: 24px; flex-wrap: wrap; }
-    .esi { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 16px 22px; border-radius: 16px; }
-    .esi.re { background: var(--red-l); }
-    .esi.be { background: var(--blue-l); }
-    .esi .eav { font-size: clamp(26px, 6vw, 36px); }
-    .esi .enm { font-size: 13px; font-weight: 800; }
-    .esi .ept { font-family: 'Fredoka One', cursive; font-size: clamp(36px, 8vw, 48px); }
-    .esi.re .enm, .esi.re .ept { color: var(--red); }
-    .esi.be .enm, .esi.be .ept { color: var(--blue); }
+  /* Afficher le séparateur et la ligne 2 */
+  .hud-break{ display:block; }
+  .hud-row2 { display:flex; }
 
-    /* ── MODAL ──────────────────────────── */
-    #modal-how {
-      display: none; position: fixed; inset: 0;
-      background: rgba(10, 20, 60, 0.55); z-index: 200;
-      align-items: center; justify-content: center; padding: 16px;
-    }
-    #modal-how.open { display: flex; }
-    .modal-inner {
-      background: #fff; border-radius: 20px;
-      padding: clamp(24px, 5vw, 36px) clamp(20px, 5vw, 44px);
-      max-width: 470px; width: 100%; max-height: 90vh; overflow-y: auto;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.22);
-    }
-    .modal-inner h2 { font-family: 'Fredoka One', cursive; font-size: clamp(20px, 5vw, 26px); color: var(--red); margin-bottom: 14px; }
-    .modal-inner ul { list-style: none; display: flex; flex-direction: column; gap: 9px; color: #3a4a6a; font-size: clamp(12px, 3vw, 14px); font-weight: 600; margin-bottom: 20px; }
-    .modal-inner ul li::before { content: "→ "; color: var(--blue); font-weight: 800; }
-  </style>
+  /* ── Ligne 1 : logo + pill + timer ── */
+  .top-logo{
+    font-size:22px;
+    flex:0 0 auto;
+    margin-right:6px;
+  }
+  .active-pill{
+    font-size:12px;
+    padding:3px 9px;
+    flex:1 1 auto;            /* prend l'espace disponible */
+    min-width:0;
+    margin-right:6px;
+  }
+  .active-pill .joue-label{ display:none; } /* "joue" masqué si trop serré */
+  .timers{
+    flex:0 0 auto;
+    gap:0;
+    /* La barre de tour descend en ligne 2, on la retire ici */
+  }
+  .timers .turn-wrap{ display:none; } /* masqué en ligne 1, réappara en ligne 2 */
+  .global-timer{
+    font-size:17px;
+    padding:2px 10px;
+    min-width:60px;
+  }
+
+  /* Séparateur invisible pour forcer un saut de ligne */
+  .hud-break{
+    flex:0 0 100%;
+    height:1px;
+    background:var(--grid);
+    margin:0 -8px;
+    width:calc(100% + 16px);
+  }
+
+  /* ── Ligne 2 : barre tour + scores + zoom + abandon ── */
+  .hud-row2{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    width:100%;
+    padding:3px 0;
+  }
+  /* La barre de tour dans la ligne 2 */
+  .hud-row2 .turn-wrap2{
+    display:flex; align-items:center; gap:4px;
+    font-size:11px; font-weight:700; color:#6680aa;
+    flex-shrink:0;
+  }
+  .hud-row2 .turn-wrap2 .turn-bar-bg{ width:48px; }
+
+  .scores{
+    flex:1 1 auto;
+    align-items:flex-start;
+  }
+  .score-label{ font-size:10px; }
+  .score-row .nm{ max-width:45px; font-size:10px; }
+  .score-row .pt{ font-size:14px; }
+  .score-row .av{ font-size:13px; }
+
+  .zoom-btns{ gap:2px; }
+  .zbtn{ width:26px; height:26px; font-size:14px; border-radius:6px; }
+
+  .btn-red.btn-sm{ font-size:11px; padding:5px 10px; }
+}
+
+/* ── TOAST ───────────────────────────────── */
+#notif{
+  position:fixed; top:calc(var(--bar-h) + 8px); left:50%;
+  transform:translateX(-50%) translateY(-12px);
+  background:#fff; border-radius:12px; padding:8px 20px;
+  font-weight:800; font-size:clamp(13px,3vw,15px);
+  box-shadow:0 8px 24px rgba(0,0,0,.13);
+  opacity:0; transition:opacity .25s,transform .25s;
+  pointer-events:none; z-index:100;
+  white-space:nowrap; max-width:92vw; overflow:hidden; text-overflow:ellipsis;
+  border-left:4px solid var(--blue);
+}
+#notif.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── END SCREEN ──────────────────────────── */
+.end-card{
+  background:#fff; border-radius:24px;
+  padding:clamp(28px,6vw,48px) clamp(24px,8vw,64px);
+  box-shadow:0 12px 48px rgba(26,59,255,.12);
+  text-align:center; max-width:480px; width:92%;
+}
+.end-title{ font-family:'Fredoka One',cursive; font-size:clamp(32px,8vw,48px); margin-bottom:6px; }
+.end-sub  { color:#6680aa; font-size:15px; font-weight:700; margin-bottom:24px; }
+.end-scores{ display:flex; gap:20px; justify-content:center; margin-bottom:24px; flex-wrap:wrap; }
+.esi{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:16px 22px; border-radius:16px; }
+.esi.re{ background:var(--red-l); }
+.esi.be{ background:var(--blue-l); }
+.esi .eav{ font-size:clamp(26px,6vw,36px); }
+.esi .enm{ font-size:13px; font-weight:800; }
+.esi .ept{ font-family:'Fredoka One',cursive; font-size:clamp(36px,8vw,48px); }
+.esi.re .enm,.esi.re .ept{ color:var(--red);  }
+.esi.be .enm,.esi.be .ept{ color:var(--blue); }
+
+/* ── CONNECTING ──────────────────────────── */
+#screen-connecting{
+  background:var(--bg);
+  gap:14px; z-index:999;
+}
+.spinner{
+  width:46px; height:46px;
+  border:5px solid var(--grid);
+  border-top-color:var(--red);
+  border-radius:50%;
+  animation:spin .6s linear infinite;
+}
+@keyframes spin{ to{transform:rotate(360deg)} }
+#screen-connecting p{
+  font-family:'Fredoka One',cursive;
+  font-size:18px; color:#6680aa;
+}
+
+/* ── MODAL ───────────────────────────────── */
+#modal-how{
+  display:none; position:fixed; inset:0;
+  background:rgba(10,20,60,.55); z-index:200;
+  align-items:center; justify-content:center; padding:16px;
+}
+#modal-how.open{ display:flex; }
+.modal-inner{
+  background:#fff; border-radius:20px;
+  padding:clamp(24px,5vw,36px) clamp(20px,5vw,44px);
+  max-width:470px; width:100%; max-height:90vh; overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.22);
+}
+.modal-inner h2{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(20px,5vw,26px); color:var(--red); margin-bottom:14px;
+}
+.modal-inner ul{
+  list-style:none; display:flex; flex-direction:column; gap:9px;
+  color:#3a4a6a; font-size:clamp(12px,3vw,14px); font-weight:600; margin-bottom:20px;
+}
+.modal-inner ul li::before{ content:"→ "; color:var(--blue); font-weight:800; }
+</style>
 </head>
 <body>
 
+<!-- CONNECTING -->
+<div id="screen-connecting" class="screen active">
+  <div class="spinner"></div>
+  <p>Connexion…</p>
+</div>
+
 <!-- WELCOME -->
-<div id="screen-welcome" class="screen grid-bg active">
+<div id="screen-welcome" class="screen grid-bg">
+  <canvas id="home-canvas"></canvas>
   <span class="help-link" onclick="openModal()">Comment ça marche ?</span>
-  <div class="connection-status" id="conn-status">
-    <div class="conn-dot" id="conn-dot"></div>
-    <span id="conn-text">Connexion...</span>
-  </div>
-  <div class="logo">YOYO</div>
-  <div class="subtitle">Le jeu des carrés stratégiques</div>
-  <div class="btn-row">
-    <button class="btn btn-green" onclick="createMultiRoom()">🎮 Lancer une partie</button>
-    <button class="btn btn-purple" onclick="showJoin()">🔗 Rejoindre une partie</button>
-  </div>
-  <div style="margin-top:14px;">
-    <button class="btn btn-blue btn-sm" onclick="startLocalAIGame()">🤖 Jouer contre l'IA</button>
+  <div class="home-content">
+    <div class="logo">YOYO</div>
+    <div class="subtitle">Le jeu des carrés stratégiques</div>
+    <div class="btn-row">
+      <button class="btn btn-green"  onclick="doCreate()">🎮 Lancer une partie</button>
+      <button class="btn btn-purple" onclick="doShowJoin()">🔗 Rejoindre une partie</button>
+    </div>
+    <div style="margin-top:14px;">
+      <button class="btn btn-blue" onclick="doAI()">🤖 Jouer contre l'IA</button>
+    </div>
   </div>
 </div>
 
-<!-- CREATE -->
+<!-- CREATE (waiting for opponent) -->
 <div id="screen-create" class="screen grid-bg">
   <div class="card">
     <h2>🎮 Partie créée !</h2>
     <p>Partagez ce code avec votre adversaire :</p>
     <div class="game-code" id="display-code">----</div>
-    <p class="pulse" id="waiting-msg">En attente d'un adversaire…</p>
-    <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-      <button class="btn btn-blue" id="btn-start-ai" onclick="startWithAIInstead()">Jouer vs IA</button>
-      <button class="btn btn-gray" onclick="cancelRoom()">Retour</button>
+    <p class="pulse wait-dots">En attente <span>.</span><span>.</span><span>.</span></p>
+    <div style="margin-top:18px;">
+      <button class="btn btn-gray" onclick="showScreen('screen-welcome')">Annuler</button>
     </div>
   </div>
 </div>
@@ -279,13 +398,13 @@
   <div class="card">
     <h2>🔗 Rejoindre une partie</h2>
     <p>Entrez le code à 4 chiffres :</p>
-    <input type="text" id="join-input" class="code-input"
+    <input type="tel" id="join-input" class="code-input"
            inputmode="numeric" maxlength="4" placeholder="0000"
            oninput="this.value=this.value.replace(/\D/g,'')">
-    <p id="join-error" style="color:var(--red);font-size:13px;margin-top:8px;min-height:18px;"></p>
+    <div class="err-msg" id="join-error"></div>
     <div style="margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-      <button class="btn btn-blue" onclick="joinMultiRoom()">Rejoindre</button>
-      <button class="btn btn-gray" onclick="showScreen('screen-welcome')">Retour</button>
+      <button class="btn btn-blue"  onclick="doJoin()">Rejoindre</button>
+      <button class="btn btn-gray"  onclick="showScreen('screen-welcome')">Retour</button>
     </div>
   </div>
 </div>
@@ -293,52 +412,83 @@
 <!-- GAME -->
 <div id="screen-game" class="screen">
   <div id="top-bar">
+    <!-- ── Ligne 1 ── -->
     <div class="top-logo">YOYO</div>
+
     <div class="active-pill">
       <div class="active-dot" id="active-dot" style="background:var(--red)"></div>
       <span id="active-name">Joueur</span>
-      <span style="font-size:11px;color:#6680aa;font-weight:600;">joue</span>
+      <span class="joue-label" style="font-size:11px;color:#6680aa;font-weight:600;">joue</span>
     </div>
+
     <div class="timers">
       <div class="global-timer" id="global-timer">10:00</div>
+      <!-- barre de tour desktop (ligne 1) -->
       <div class="turn-wrap">
         <span>Tour&nbsp;:</span>
         <div class="turn-bar-bg"><div id="turn-bar" style="width:100%"></div></div>
         <span id="turn-num">8</span>s
       </div>
     </div>
-    <div class="scores">
+
+    <div class="scores" id="scores-desk">
       <div class="score-label">Score !!!</div>
-      <div class="score-row r"><span class="av" id="av-r">🤖</span><span class="nm" id="nm-r">Vous</span><span class="pt" id="pt-r">00</span></div>
-      <div class="score-row b"><span class="av" id="av-b">👾</span><span class="nm" id="nm-b">IA</span><span class="pt" id="pt-b">00</span></div>
+      <div class="score-row r"><span class="av" id="av-r">🤖</span><span class="nm" id="nm-r">Rouge</span><span class="pt" id="pt-r">00</span></div>
+      <div class="score-row b"><span class="av" id="av-b">👾</span><span class="nm" id="nm-b">Bleu</span> <span class="pt" id="pt-b">00</span></div>
     </div>
+
     <div class="zoom-btns">
-      <button class="zbtn" onclick="zoomBtn(1.25)" title="Zoom +">+</button>
+      <button class="zbtn" onclick="zoomBtn(1.25)"   title="Zoom +">+</button>
       <button class="zbtn" onclick="zoomBtn(1/1.25)" title="Zoom −">−</button>
-      <button class="zbtn" onclick="resetView()" title="Vue par défaut" style="font-size:13px;">⌖</button>
+      <button class="zbtn" onclick="resetView()"     title="Vue par défaut" style="font-size:13px;">⌖</button>
     </div>
+
     <button class="btn btn-red btn-sm" onclick="abandonGame()">Abandonner</button>
+
+    <!-- ── Séparateur → saut de ligne mobile ── -->
+    <div class="hud-break"></div>
+
+    <!-- ── Ligne 2 (mobile uniquement) ── -->
+    <div class="hud-row2">
+      <div class="turn-wrap2">
+        <span>Tour&nbsp;:</span>
+        <div class="turn-bar-bg"><div id="turn-bar-2" style="width:100%"></div></div>
+        <span id="turn-num-2">8</span>s
+      </div>
+      <div class="scores" id="scores-mob">
+        <div class="score-label">Score !!!</div>
+        <div class="score-row r"><span class="av" id="av-r-m">🤖</span><span class="nm" id="nm-r-m">Rouge</span><span class="pt" id="pt-r-m">00</span></div>
+        <div class="score-row b"><span class="av" id="av-b-m">👾</span><span class="nm" id="nm-b-m">Bleu</span> <span class="pt" id="pt-b-m">00</span></div>
+      </div>
+      <div class="zoom-btns" style="margin-left:auto;">
+        <button class="zbtn" onclick="zoomBtn(1.25)"   title="Zoom +">+</button>
+        <button class="zbtn" onclick="zoomBtn(1/1.25)" title="Zoom −">−</button>
+        <button class="zbtn" onclick="resetView()"     title="Vue" style="font-size:11px;">⌖</button>
+      </div>
+      <button class="btn btn-red btn-sm" onclick="abandonGame()">Abandonner</button>
+    </div>
   </div>
+
   <div id="canvas-wrap"><canvas id="game-canvas"></canvas></div>
 </div>
 
 <!-- END -->
 <div id="screen-end" class="screen grid-bg">
   <div class="end-card">
-    <div class="end-title" id="end-title">🏆 Victoire !</div>
-    <div class="end-sub" id="end-sub">Fin de partie</div>
+    <div class="end-title" id="end-title">🏆 Fin !</div>
+    <div class="end-sub"   id="end-sub">Résultats</div>
     <div class="end-scores">
-      <div class="esi re"><div class="eav" id="e-av-r">🤖</div><div class="enm" id="e-nm-r">Vous</div><div class="ept" id="e-pt-r">0</div></div>
-      <div class="esi be"><div class="eav" id="e-av-b">👾</div><div class="enm" id="e-nm-b">IA</div><div class="ept" id="e-pt-b">0</div></div>
+      <div class="esi re"><div class="eav" id="e-av-r">🤖</div><div class="enm" id="e-nm-r">Rouge</div><div class="ept" id="e-pt-r">0</div></div>
+      <div class="esi be"><div class="eav" id="e-av-b">👾</div><div class="enm" id="e-nm-b">Bleu</div> <div class="ept" id="e-pt-b">0</div></div>
     </div>
     <div class="btn-row" style="justify-content:center;">
-      <button class="btn btn-green" onclick="startLocalAIGame()">Rejouer</button>
-      <button class="btn btn-gray" onclick="showScreen('screen-welcome')">Accueil</button>
+      <button class="btn btn-green"  onclick="showScreen('screen-welcome')">Rejouer</button>
+      <button class="btn btn-gray"   onclick="showScreen('screen-welcome')">Accueil</button>
     </div>
   </div>
 </div>
 
-<!-- MODAL -->
+<!-- HOW TO MODAL -->
 <div id="modal-how">
   <div class="modal-inner">
     <h2>Comment jouer à YOYO ?</h2>
@@ -350,7 +500,7 @@
       <li>Vous avez <strong>8 secondes</strong> par tour — le tour passe si vous dépassez</li>
       <li>La partie dure <strong>10 minutes</strong> — le plus de points gagne !</li>
       <li>📱 <strong>Mobile :</strong> glisser 1 doigt = déplacer · pincer = zoomer · appui court = placer un point</li>
-      <li>🖥️ <strong>PC :</strong> molette = zoomer · clic + glisser = déplacer · clic = placer un point</li>
+      <li>🖥️ <strong>PC :</strong> molette = zoomer · clic droit + glisser = déplacer · clic gauche = placer un point</li>
     </ul>
     <button class="btn btn-blue" onclick="closeModal()" style="width:100%">C'est compris !</button>
   </div>
@@ -361,367 +511,337 @@
 <script>
 "use strict";
 
-// ═══════════════════════════════════
+// ════════════════════════════════════════
 // CONSTANTS
-// ═══════════════════════════════════
-const CELL     = 40;
-const GRID     = 50;
-const TURN_SEC = 8;
-const GAME_SEC = 600;
-const MIN_ZOOM = 0.22;
-const MAX_ZOOM = 5.0;
-const TAP_SLOP = 10;
+// ════════════════════════════════════════
+const CELL      = 40;
+const GRID      = 50;   // 50×50 intersections (visible area; server uses 100×100)
+const TURN_SEC  = 8;
+const GAME_SEC  = 600;
+const MIN_ZOOM  = 0.22;
+const MAX_ZOOM  = 5.0;
+const TAP_SLOP  = 10;   // px — max movement to be a tap
 
-const AVATARS = ['🤖','👾','🐸','🦊','🐙','🦄','🐺','🦁','🐯','🦋'];
+const AVATARS = ['🤖','👾','🐸','🦊','🐙','🦄','🐺','🦁','🐯','🦋','🐉','🦅','🎭','⚡','🔥'];
 
-// WebSocket URL
-const WS_URL = (location.protocol === 'https:' ? 'wss:' : 'ws:') + '//' + location.host;
+// ════════════════════════════════════════
+// WEBSOCKET
+// ════════════════════════════════════════
+const WS_URL  = `${location.protocol==='https:'?'wss':'ws'}://${location.host}`;
+let   ws, wsOk=false, wsPending=[];
 
-// ═══════════════════════════════════
-// STATE
-// ═══════════════════════════════════
-let G = {
-  mode: 'local', // 'local' | 'multi' | 'ai-server'
-  points: {},
-  squares: [],
-  scores: { red: 0, blue: 0 },
+function wsConnect(){
+  ws = new WebSocket(WS_URL);
+  ws.onopen    = () => {
+    wsOk = true;
+    wsPending.forEach(wsSend); wsPending=[];
+    showScreen('screen-welcome');  // triggers home canvas via the override
+  };
+  ws.onmessage = e => onWsMsg(JSON.parse(e.data));
+  ws.onclose   = () => { wsOk=false; setTimeout(wsConnect,2000); };
+  ws.onerror   = () => {};
+}
+function wsSend(o){
+  if(wsOk && ws.readyState===1) ws.send(JSON.stringify(o));
+  else wsPending.push(o);
+}
+setInterval(()=>{ if(wsOk) wsSend({type:'PING'}); },20000);
+
+// ════════════════════════════════════════
+// GAME STATE
+// ════════════════════════════════════════
+let myColor=null, gameMode=null;
+// players info synced from server
+let serverPlayers = {}; // color→{name,avatar}
+
+// Canvas render state (mirrors server authoritative state)
+let R = {
+  points: {},       // "x,y" → color
+  squares: [],      // {x,y,color,num}
+  scores: {red:0,blue:0},
   turn: 'red',
-  timeGame: GAME_SEC,
   timeTurn: TURN_SEC,
+  timeGame: GAME_SEC,
   running: false,
-  aiWait: false,
-  players: {
-    red:  { name: 'Vous',    avatar: '🤖', local: true  },
-    blue: { name: 'YOYO IA', avatar: '👾', local: false }
-  },
-  camX: 0, camY: 0, zoom: 1,
-  hover: null,
   anims: [],
-  roomCode: null,
-  myColor: null,
-  ws: null,
+  hover: null,
+  camX:0, camY:0, zoom:1,
 };
 
-let timerGame = null, timerTurn = null, animId = null;
-let canvas, ctx;
+let canvas, ctx, animId=null;
 const $ = id => document.getElementById(id);
 
-// ═══════════════════════════════════
-// WEBSOCKET
-// ═══════════════════════════════════
-function connectWS() {
-  if (G.ws && G.ws.readyState === WebSocket.OPEN) return;
-  updateConnStatus('connecting');
-  
-  const ws = new WebSocket(WS_URL);
-  ws.onopen = () => {
-    console.log('WebSocket connecté');
-    G.ws = ws;
-    updateConnStatus('online');
-  };
-  ws.onmessage = (e) => {
-    let msg;
-    try { msg = JSON.parse(e.data); } catch(ex) { return; }
-    handleWSMessage(msg);
-  };
-  ws.onclose = () => {
-    console.log('WebSocket déconnecté');
-    updateConnStatus('offline');
-    G.ws = null;
-  };
-  ws.onerror = () => updateConnStatus('offline');
-  G.ws = ws;
+// ════════════════════════════════════════
+// SCREEN HELPERS
+// ════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+function openModal() { $('modal-how').classList.add('open');   }
+function closeModal(){ $('modal-how').classList.remove('open');}
+$('modal-how').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeModal(); });
+
+// ════════════════════════════════════════
+// HOME ACTIONS
+// ════════════════════════════════════════
+function doCreate(){
+  wsSend({type:'CREATE_ROOM'});
+}
+function doShowJoin(){
+  $('join-input').value=''; $('join-error').textContent='';
+  showScreen('screen-join');
+  setTimeout(()=>$('join-input').focus(),250);
+}
+function doJoin(){
+  const v=$('join-input').value.trim();
+  if(!/^\d{4}$/.test(v)){ $('join-error').textContent='Code invalide (4 chiffres requis).'; return; }
+  wsSend({type:'JOIN_ROOM',code:v});
+}
+function doAI(){
+  gameMode='ai';
+  wsSend({type:'START_AI_GAME'});
+}
+function abandonGame(){
+  if(!R.running) return;
+  if(confirm('Abandonner la partie en cours ?')) wsSend({type:'ABANDON'});
 }
 
-function sendWS(obj) {
-  if (G.ws && G.ws.readyState === WebSocket.OPEN) {
-    G.ws.send(JSON.stringify(obj));
-  } else {
-    console.warn('WS not ready');
-    connectWS();
-    setTimeout(() => { if (G.ws?.readyState === WebSocket.OPEN) G.ws.send(JSON.stringify(obj)); }, 500);
-  }
-}
+// ════════════════════════════════════════
+// SERVER → CLIENT MESSAGES
+// ════════════════════════════════════════
+function onWsMsg(msg){
+  switch(msg.type){
 
-function updateConnStatus(status) {
-  const dot = $('conn-dot');
-  const text = $('conn-text');
-  if (!dot || !text) return;
-  dot.className = 'conn-dot';
-  if (status === 'online') { dot.classList.add('online'); text.textContent = 'Connecté'; }
-  else if (status === 'offline') { dot.classList.add('offline'); text.textContent = 'Déconnecté'; }
-  else { text.textContent = 'Connexion...'; }
-}
-
-function handleWSMessage(msg) {
-  switch(msg.type) {
     case 'ROOM_CREATED':
-      G.roomCode = msg.code;
-      G.myColor = msg.yourColor;
-      G.mode = 'multi';
-      G.players[G.myColor] = { name: msg.yourName, avatar: msg.yourAvatar, local: true };
-      G.players[msg.yourColor === 'red' ? 'blue' : 'red'] = { name: 'Adversaire', avatar: '❓', local: false };
+      myColor = msg.yourColor; gameMode='multi';
       $('display-code').textContent = msg.code;
       showScreen('screen-create');
-      toast('Partagez le code ' + msg.code, '#1a3bff');
       break;
 
     case 'ROOM_JOINED':
-      G.roomCode = msg.code;
-      G.myColor = msg.yourColor;
-      G.mode = 'multi';
-      G.players[G.myColor] = { name: msg.yourName, avatar: msg.yourAvatar, local: true };
-      G.players[msg.yourColor === 'red' ? 'blue' : 'red'] = { name: 'Adversaire', avatar: '❓', local: false };
-      toast('Connecté à la partie !', '#4dde80');
+      myColor = msg.yourColor; gameMode='multi';
       break;
 
     case 'AI_GAME_READY':
-      G.roomCode = msg.code;
-      G.myColor = msg.yourColor;
-      G.mode = 'ai-server';
-      G.players[msg.yourColor] = { name: msg.yourName, avatar: msg.yourAvatar, local: true };
-      G.players[msg.aiColor] = { name: msg.aiName, avatar: msg.aiAvatar, local: false };
-      break;
-
-    case 'GAME_START':
-      // Game started by server, sync state
-      G.running = true;
-      G.turn = msg.turn;
-      G.timeGame = GAME_SEC;
-      G.timeTurn = TURN_SEC;
-      G.scores = { red: 0, blue: 0 };
-      G.squares = [];
-      G.points = {};
-      G.anims = [];
-      if (G.mode === 'multi' || G.mode === 'ai-server') {
-        G.players['red'].local = (G.myColor === 'red');
-        G.players['blue'].local = (G.myColor === 'blue');
-      }
-      refreshHUD();
-      showScreen('screen-game');
-      initCanvas();
-      startTimers();
-      toast('La partie commence ! 🎮', '#1a3bff');
-      break;
-
-    case 'STATE_UPDATE':
-      // Sync points from server format
-      if (msg.points) {
-        G.points = {};
-        for (const p of msg.points) {
-          G.points[`${p.x},${p.y}`] = p.color;
-        }
-      }
-      if (msg.squares) {
-        G.squares = msg.squares.map(s => ({ x: s.x, y: s.y, color: s.color, num: s.number || G.squares.length+1 }));
-      }
-      G.scores = msg.scores || G.scores;
-      G.turn = msg.turn;
-      G.timeGame = msg.timeLeft;
-      G.timeTurn = msg.turnTimeLeft;
-      if (msg.players) {
-        for (const p of msg.players) {
-          if (G.players[p.color]) {
-            G.players[p.color].name = p.name;
-            G.players[p.color].avatar = p.avatar;
-          }
-        }
-      }
-      updateScore();
-      updateActiveIndicator();
-      updateGlobalTimer();
-      updateTurnBar();
-      break;
-
-    case 'SQUARES_FORMED':
-      if (msg.squares) {
-        for (const sq of msg.squares) {
-          G.anims.push({ type: 'sqflash', x: sq.x, y: sq.y, color: msg.color, start: performance.now(), dur: 600 });
-        }
-      }
-      toast(`+${msg.scored} carré(s) pour ${G.players[msg.color]?.name || msg.color} !`, msg.color === 'red' ? '#e8192c' : '#1a3bff');
+      myColor = msg.yourColor; gameMode='ai';
+      serverPlayers[msg.yourColor] = {name:'Yoyo Moi', avatar:msg.yourAvatar};
+      serverPlayers[msg.aiColor]   = {name:'Yoyo IA',  avatar:'🤖'};
       break;
 
     case 'OPPONENT_JOINED':
-      if (msg.players) {
-        for (const p of msg.players) {
-          if (p.color !== G.myColor) {
-            G.players[p.color] = { name: p.name, avatar: p.avatar, local: false };
-          }
+      if(msg.players) msg.players.forEach(p=>(serverPlayers[p.color]={name:p.name,avatar:p.avatar}));
+      break;
+
+    case 'GAME_START':
+      startLocalGame();
+      toast('La partie commence ! 🎮','#1a3bff');
+      break;
+
+    case 'STATE_UPDATE': {
+      // Sync from server
+      const prevPts = {...R.points};
+      // Rebuild points map
+      const newPts = {};
+      for(const p of msg.points) newPts[`${p.x},${p.y}`]=p.color;
+
+      // Detect new points for ripple anim
+      for(const [k,c] of Object.entries(newPts)){
+        if(!prevPts[k]){
+          const [gx,gy]=k.split(',').map(Number);
+          R.anims.push({type:'ripple',x:gx,y:gy,color:c,start:performance.now(),dur:450});
         }
       }
-      document.querySelector('#screen-create .pulse')?.remove();
-      toast('Adversaire connecté ! 🎉', '#4dde80');
+
+      R.points = newPts;
+
+      // Sync squares
+      const prevSqCount = R.squares.length;
+      R.squares = msg.squares.map(sq=>({...sq, num:sq.number}));
+      if(R.squares.length > prevSqCount){
+        for(let i=prevSqCount; i<R.squares.length; i++){
+          const sq=R.squares[i];
+          R.anims.push({type:'sqflash',x:sq.x,y:sq.y,color:sq.color,start:performance.now(),dur:600});
+        }
+      }
+
+      R.scores   = msg.scores;
+      R.turn     = msg.turn;
+      R.timeTurn = msg.turnTimeLeft;
+      R.timeGame = msg.timeLeft;
+
+      if(msg.players) msg.players.forEach(p=>(serverPlayers[p.color]={name:p.name,avatar:p.avatar,isAI:p.isAI}));
+
+      updateHUD();
+      break;
+    }
+
+    case 'SQUARES_FORMED':
+      if(msg.color===myColor)
+        toast(`🟥 +${msg.scored} carré${msg.scored>1?'s':''} !`, '#e8192c');
+      else
+        toast('L\'adversaire marque !', '#1a3bff');
       break;
 
     case 'GAME_OVER':
-      G.running = false;
-      clearInterval(timerGame);
-      clearInterval(timerTurn);
-      G.scores = msg.scores || G.scores;
-      endGame(msg.winner === G.myColor ? 'win' : (msg.winner ? 'lose' : 'draw'));
-      break;
-
-    case 'OPPONENT_DISCONNECTED':
-      if (G.running) {
-        toast('Adversaire déconnecté 😢', '#ff4757');
-        G.running = false;
-        clearInterval(timerGame);
-        clearInterval(timerTurn);
-        endGame('win');
-      }
+      endGame(msg);
       break;
 
     case 'PLAYER_ABANDONED':
-      toast('Un joueur a abandonné 🏳️', '#ff4757');
+      toast('Un joueur a abandonné !',' #f59e0b');
+      break;
+
+    case 'OPPONENT_DISCONNECTED':
+      toast('Adversaire déconnecté 😞','#6680aa');
+      setTimeout(()=>showScreen('screen-welcome'),2500);
       break;
 
     case 'ERROR':
-      toast(msg.message, '#ff4757');
-      if ($('join-error')) $('join-error').textContent = msg.message;
-      break;
-
-    case 'PONG':
+      $('join-error').textContent = msg.message;
+      toast(msg.message,'#e8192c');
       break;
   }
 }
 
-// ═══════════════════════════════════
-// SCREENS
-// ═══════════════════════════════════
-function showScreen(id) {
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  $(id).classList.add('active');
-}
-
-function createMultiRoom() {
-  connectWS();
-  sendWS({ type: 'CREATE_ROOM' });
-}
-
-function showJoin() { $('join-input').value = ''; $('join-error').textContent = ''; showScreen('screen-join'); }
-
-function joinMultiRoom() {
-  const code = $('join-input').value;
-  if (code.length !== 4) { $('join-error').textContent = 'Code invalide (4 chiffres requis).'; return; }
-  $('join-error').textContent = '';
-  connectWS();
-  sendWS({ type: 'JOIN_ROOM', code });
-}
-
-function cancelRoom() {
-  G.roomCode = null;
-  G.mode = 'local';
-  showScreen('screen-welcome');
-}
-
-function startWithAIInstead() {
-  // Fallback to local AI if no opponent joins
-  G.mode = 'local';
-  startLocalAIGame();
-}
-
-// ═══════════════════════════════════
-// GAME START (LOCAL / AI)
-// ═══════════════════════════════════
-function startLocalAIGame() {
-  G.mode = 'local';
-  const pool = [...AVATARS];
-  const av1 = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
-  const av2 = pool[Math.floor(Math.random() * pool.length)];
-  const lc = Math.random() < 0.5 ? 'red' : 'blue';
-  const ac = lc === 'red' ? 'blue' : 'red';
-  G.players[lc] = { name: 'YOYO Moi', avatar: av1, local: true };
-  G.players[ac] = { name: 'YOYO IA',  avatar: av2, local: false };
-  G.points = {};
-  G.squares = [];
-  G.scores = { red: 0, blue: 0 };
-  G.turn = 'red';
-  G.timeGame = GAME_SEC;
-  G.timeTurn = TURN_SEC;
-  G.running = true;
-  G.aiWait = false;
-  G.anims = [];
-  G.hover = null;
-  G.roomCode = null;
-  G.myColor = lc;
-  refreshHUD();
+// ════════════════════════════════════════
+// START LOCAL GAME (after GAME_START)
+// ════════════════════════════════════════
+function startLocalGame(){
+  R.points={}; R.squares=[];
+  R.scores={red:0,blue:0};
+  R.turn='red'; R.timeGame=GAME_SEC; R.timeTurn=TURN_SEC;
+  R.running=true; R.anims=[]; R.hover=null;
   showScreen('screen-game');
   initCanvas();
-  startTimers();
-  toast('La partie commence ! 🎮', '#1a3bff');
+  updateHUD();
 }
 
-function refreshHUD() {
-  const r = G.players.red, b = G.players.blue;
-  $('av-r').textContent = r.avatar; $('nm-r').textContent = r.name;
-  $('av-b').textContent = b.avatar; $('nm-b').textContent = b.name;
-  $('e-av-r').textContent = r.avatar; $('e-nm-r').textContent = r.name;
-  $('e-av-b').textContent = b.avatar; $('e-nm-b').textContent = b.name;
+// ════════════════════════════════════════
+// HUD
+// ════════════════════════════════════════
+function updateHUD(){
+  const rp = serverPlayers['red']  || {name:'Rouge', avatar:'🤖'};
+  const bp = serverPlayers['blue'] || {name:'Bleu',  avatar:'👾'};
+
+  // Desktop scores
+  $('av-r').textContent = rp.avatar; $('nm-r').textContent = rp.name;
+  $('av-b').textContent = bp.avatar; $('nm-b').textContent = bp.name;
+  // Mobile scores (ligne 2)
+  $('av-r-m').textContent = rp.avatar; $('nm-r-m').textContent = rp.name;
+  $('av-b-m').textContent = bp.avatar; $('nm-b-m').textContent = bp.name;
+  // End screen
+  $('e-av-r').textContent=rp.avatar; $('e-nm-r').textContent=rp.name;
+  $('e-av-b').textContent=bp.avatar; $('e-nm-b').textContent=bp.name;
+
+  // Active indicator
+  const turnName = R.turn==='red' ? rp.name : bp.name;
+  $('active-name').textContent = turnName;
+  $('active-dot').style.background = R.turn==='red' ? 'var(--red)' : 'var(--blue)';
+
   updateScore();
-  updateActiveIndicator();
+  updateGlobalTimer();
+  updateTurnBar();
 }
 
-// ═══════════════════════════════════
+function updateScore(){
+  const rs = String(R.scores.red ).padStart(2,'0');
+  const bs = String(R.scores.blue).padStart(2,'0');
+  $('pt-r').textContent = rs; $('pt-b').textContent = bs;
+  $('pt-r-m').textContent = rs; $('pt-b-m').textContent = bs;
+  $('e-pt-r').textContent = R.scores.red;
+  $('e-pt-b').textContent = R.scores.blue;
+}
+
+function updateGlobalTimer(){
+  const m=String(Math.floor(R.timeGame/60)).padStart(2,'0');
+  const s=String(R.timeGame%60).padStart(2,'0');
+  const el=$('global-timer');
+  el.textContent=`${m}:${s}`;
+  el.style.color = R.timeGame<=60 ? 'var(--red)' : '#1a2a4a';
+}
+
+function updateTurnBar(){
+  const pct=(R.timeTurn/TURN_SEC)*100;
+  const bg = pct>50?'#4dde80':pct>25?'#ffc107':'#e8192c';
+  // Desktop bar
+  $('turn-bar').style.width=pct+'%';
+  $('turn-bar').style.background=bg;
+  $('turn-num').textContent = R.timeTurn;
+  // Mobile bar (ligne 2)
+  $('turn-bar-2').style.width=pct+'%';
+  $('turn-bar-2').style.background=bg;
+  $('turn-num-2').textContent = R.timeTurn;
+}
+
+// ════════════════════════════════════════
 // CANVAS
-// ═══════════════════════════════════
-function initCanvas() {
-  const wrap = $('canvas-wrap');
-  const old = $('game-canvas');
-  const fresh = old.cloneNode(false);
-  fresh.id = 'game-canvas';
-  wrap.replaceChild(fresh, old);
-  canvas = fresh;
-  canvas.width = wrap.clientWidth;
-  canvas.height = wrap.clientHeight;
-  ctx = canvas.getContext('2d');
+// ════════════════════════════════════════
+function initCanvas(){
+  const wrap=$('canvas-wrap');
+  const old=$('game-canvas');
+  const fresh=old.cloneNode(false);
+  fresh.id='game-canvas';
+  wrap.replaceChild(fresh,old);
+  canvas=fresh;
+  ctx=canvas.getContext('2d');
+  resizeCanvas();
   resetView();
 
   // Desktop
-  canvas.addEventListener('mousedown',  onMD, false);
-  canvas.addEventListener('mousemove',  onMM, false);
-  canvas.addEventListener('mouseup',    onMU, false);
-  canvas.addEventListener('mouseleave', () => { mDrag = false; G.hover = null; }, false);
-  canvas.addEventListener('click',      onCK, false);
-  canvas.addEventListener('wheel',      onWH, { passive: false });
+  canvas.addEventListener('mousedown',  onMD,  false);
+  canvas.addEventListener('mousemove',  onMM,  false);
+  canvas.addEventListener('mouseup',    onMU,  false);
+  canvas.addEventListener('mouseleave', ()=>{ mDrag=false; R.hover=null; }, false);
+  canvas.addEventListener('click',      onCK,  false);
+  canvas.addEventListener('wheel',      onWH,  {passive:false});
+  // Right-click pan
+  canvas.addEventListener('contextmenu',e=>e.preventDefault(),false);
 
   // Mobile
-  canvas.addEventListener('touchstart',  onTS, { passive: false });
-  canvas.addEventListener('touchmove',   onTM, { passive: false });
-  canvas.addEventListener('touchend',    onTE, { passive: false });
-  canvas.addEventListener('touchcancel', onTE, { passive: false });
+  canvas.addEventListener('touchstart',  onTS, {passive:false});
+  canvas.addEventListener('touchmove',   onTM, {passive:false});
+  canvas.addEventListener('touchend',    onTE, {passive:false});
+  canvas.addEventListener('touchcancel', onTE, {passive:false});
 
-  if (animId) cancelAnimationFrame(animId);
+  if(animId) cancelAnimationFrame(animId);
   animId = requestAnimationFrame(render);
 }
 
-function resetView() {
-  if (!canvas) return;
-  G.zoom = 1;
-  G.camX = canvas.width / 2 - (GRID * CELL) / 2;
-  G.camY = canvas.height / 2 - (GRID * CELL) / 2;
+function resizeCanvas(){
+  if(!canvas) return;
+  const wrap=$('canvas-wrap');
+  canvas.width  = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
 }
-function zoomBtn(f) { if (canvas) applyZoom(f, canvas.width / 2, canvas.height / 2); }
-function applyZoom(f, cx, cy) {
-  const nz = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, G.zoom * f));
-  if (nz === G.zoom) return;
-  G.camX = cx - (cx - G.camX) * (nz / G.zoom);
-  G.camY = cy - (cy - G.camY) * (nz / G.zoom);
-  G.zoom = nz;
+window.addEventListener('resize',()=>{ resizeCanvas(); });
+
+function resetView(){
+  if(!canvas) return;
+  R.zoom=1;
+  R.camX=canvas.width /2-(GRID*CELL)/2;
+  R.camY=canvas.height/2-(GRID*CELL)/2;
+}
+function zoomBtn(f){ if(canvas) applyZoom(f,canvas.width/2,canvas.height/2); }
+function applyZoom(f,cx,cy){
+  const nz=Math.min(MAX_ZOOM,Math.max(MIN_ZOOM,R.zoom*f));
+  if(nz===R.zoom) return;
+  R.camX=cx-(cx-R.camX)*(nz/R.zoom);
+  R.camY=cy-(cy-R.camY)*(nz/R.zoom);
+  R.zoom=nz;
 }
 
-// ═══════════════════════════════════
-// RENDER
-// ═══════════════════════════════════
-function render(ts) {
-  animId = requestAnimationFrame(render);
-  if (!canvas) return;
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = '#eef3fc';
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
+// ════════════════════════════════════════
+// RENDER LOOP
+// ════════════════════════════════════════
+function render(ts){
+  animId=requestAnimationFrame(render);
+  if(!canvas) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#eef3fc';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
   ctx.save();
-  ctx.translate(G.camX, G.camY);
-  ctx.scale(G.zoom, G.zoom);
+  ctx.translate(R.camX,R.camY);
+  ctx.scale(R.zoom,R.zoom);
   drawGrid();
   drawSquares();
   drawHoverDot();
@@ -729,438 +849,373 @@ function render(ts) {
   ctx.restore();
 }
 
-function drawGrid() {
-  const vw = canvas.width / G.zoom, vh = canvas.height / G.zoom;
-  const ox = -G.camX / G.zoom, oy = -G.camY / G.zoom;
-  const x0 = Math.max(0, Math.floor(ox / CELL) - 1);
-  const x1 = Math.min(GRID, Math.ceil((ox + vw) / CELL) + 1);
-  const y0 = Math.max(0, Math.floor(oy / CELL) - 1);
-  const y1 = Math.min(GRID, Math.ceil((oy + vh) / CELL) + 1);
-  ctx.strokeStyle = '#c8d8f0';
-  ctx.lineWidth = 1 / G.zoom;
-  for (let x = x0; x <= x1; x++) { ctx.beginPath(); ctx.moveTo(x * CELL, y0 * CELL); ctx.lineTo(x * CELL, y1 * CELL); ctx.stroke(); }
-  for (let y = y0; y <= y1; y++) { ctx.beginPath(); ctx.moveTo(x0 * CELL, y * CELL); ctx.lineTo(x1 * CELL, y * CELL); ctx.stroke(); }
+function drawGrid(){
+  const vw=canvas.width/R.zoom, vh=canvas.height/R.zoom;
+  const ox=-R.camX/R.zoom,       oy=-R.camY/R.zoom;
+  const x0=Math.max(0,Math.floor(ox/CELL)-1);
+  const x1=Math.min(GRID,Math.ceil((ox+vw)/CELL)+1);
+  const y0=Math.max(0,Math.floor(oy/CELL)-1);
+  const y1=Math.min(GRID,Math.ceil((oy+vh)/CELL)+1);
+  ctx.strokeStyle='#c8d8f0'; ctx.lineWidth=1/R.zoom;
+  for(let x=x0;x<=x1;x++){ ctx.beginPath(); ctx.moveTo(x*CELL,y0*CELL); ctx.lineTo(x*CELL,y1*CELL); ctx.stroke(); }
+  for(let y=y0;y<=y1;y++){ ctx.beginPath(); ctx.moveTo(x0*CELL,y*CELL); ctx.lineTo(x1*CELL,y*CELL); ctx.stroke(); }
 }
 
-function drawSquares() {
-  for (const sq of G.squares) {
-    const px = sq.x * CELL, py = sq.y * CELL, isR = sq.color === 'red';
-    ctx.fillStyle = isR ? 'rgba(232,25,44,.12)' : 'rgba(26,59,255,.12)';
-    ctx.fillRect(px, py, CELL, CELL);
-    ctx.strokeStyle = isR ? '#e8192c' : '#1a3bff';
-    ctx.lineWidth = 2.5 / G.zoom;
-    ctx.strokeRect(px + 1 / G.zoom, py + 1 / G.zoom, CELL - 2 / G.zoom, CELL - 2 / G.zoom);
-    ctx.fillStyle = isR ? '#e8192c' : '#1a3bff';
-    ctx.font = `bold ${Math.round(CELL * 0.42)}px "Fredoka One", cursive`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    ctx.fillText(sq.num, px + CELL / 2, py + CELL / 2);
+function drawSquares(){
+  for(const sq of R.squares){
+    const px=sq.x*CELL, py=sq.y*CELL, isR=sq.color==='red';
+    ctx.fillStyle  = isR?'rgba(232,25,44,.12)':'rgba(26,59,255,.12)';
+    ctx.fillRect(px,py,CELL,CELL);
+    ctx.strokeStyle= isR?'#e8192c':'#1a3bff';
+    ctx.lineWidth  = 2.5/R.zoom;
+    ctx.strokeRect(px+1/R.zoom,py+1/R.zoom,CELL-2/R.zoom,CELL-2/R.zoom);
+    ctx.fillStyle  = isR?'#e8192c':'#1a3bff';
+    ctx.font       = `bold ${Math.round(CELL*.42)}px "Fredoka One",cursive`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(sq.num,px+CELL/2,py+CELL/2);
   }
 }
 
-function drawHoverDot() {
-  if (!G.hover || !G.running) return;
-  const isLocalTurn = (G.mode === 'local' && G.players[G.turn]?.local) || (G.mode !== 'local' && G.turn === G.myColor);
-  if (!isLocalTurn) return;
-  const { gx, gy } = G.hover;
-  if (G.points[`${gx},${gy}`]) return;
-  ctx.beginPath();
-  ctx.arc(gx * CELL, gy * CELL, 7, 0, Math.PI * 2);
-  ctx.fillStyle = G.turn === 'red' ? 'rgba(232,25,44,.3)' : 'rgba(26,59,255,.3)';
+function drawHoverDot(){
+  if(!R.hover||!R.running||(myColor&&R.turn!==myColor)) return;
+  const {gx,gy}=R.hover;
+  if(R.points[`${gx},${gy}`]) return;
+  ctx.beginPath(); ctx.arc(gx*CELL,gy*CELL,7,0,Math.PI*2);
+  ctx.fillStyle=R.turn==='red'?'rgba(232,25,44,.3)':'rgba(26,59,255,.3)';
   ctx.fill();
 }
 
-function drawPoints(ts) {
-  for (const [key, color] of Object.entries(G.points)) {
-    const [gx, gy] = key.split(',').map(Number);
-    dot(gx * CELL, gy * CELL, color, 6);
+function drawPoints(ts){
+  // Static points
+  for(const [key,color] of Object.entries(R.points)){
+    const [gx,gy]=key.split(',').map(Number);
+    drawDot(gx*CELL,gy*CELL,color,6);
   }
-  G.anims = G.anims.filter(a => {
-    const t = Math.min((ts - a.start) / a.dur, 1);
-    const isR = a.color === 'red';
-    if (a.type === 'ripple') {
-      const r = 6 + 18 * t, alp = (1 - t) * 0.65;
-      ctx.beginPath();
-      ctx.arc(a.x * CELL, a.y * CELL, r, 0, Math.PI * 2);
-      ctx.strokeStyle = isR ? `rgba(232,25,44,${alp})` : `rgba(26,59,255,${alp})`;
-      ctx.lineWidth = 2 / G.zoom;
-      ctx.stroke();
-    } else if (a.type === 'sqflash') {
-      const sc = 0.55 + 0.45 * t, alp = t < 0.5 ? t * 2 : 1;
+  // Animations
+  R.anims=R.anims.filter(a=>{
+    const t=Math.min((ts-a.start)/a.dur,1);
+    const isR=a.color==='red';
+    if(a.type==='ripple'){
+      const r=6+18*t, alp=(1-t)*.65;
+      ctx.beginPath(); ctx.arc(a.x*CELL,a.y*CELL,r,0,Math.PI*2);
+      ctx.strokeStyle=isR?`rgba(232,25,44,${alp})`:`rgba(26,59,255,${alp})`;
+      ctx.lineWidth=2/R.zoom; ctx.stroke();
+    } else if(a.type==='sqflash'){
+      const sc=.55+.45*t, alp=t<.5?t*2:1;
       ctx.save();
-      ctx.translate(a.x * CELL + CELL / 2, a.y * CELL + CELL / 2);
-      ctx.scale(sc, sc);
-      ctx.strokeStyle = isR ? `rgba(232,25,44,${alp})` : `rgba(26,59,255,${alp})`;
-      ctx.lineWidth = 4 / G.zoom;
-      ctx.strokeRect(-CELL / 2, -CELL / 2, CELL, CELL);
+      ctx.translate(a.x*CELL+CELL/2,a.y*CELL+CELL/2); ctx.scale(sc,sc);
+      ctx.strokeStyle=isR?`rgba(232,25,44,${alp})`:`rgba(26,59,255,${alp})`;
+      ctx.lineWidth=4/R.zoom; ctx.strokeRect(-CELL/2,-CELL/2,CELL,CELL);
       ctx.restore();
     }
-    return t < 1;
+    return t<1;
   });
 }
 
-function dot(px, py, color, r) {
-  ctx.beginPath();
-  ctx.arc(px, py, r, 0, Math.PI * 2);
-  ctx.fillStyle = color === 'red' ? '#e8192c' : '#1a3bff';
-  ctx.fill();
-  ctx.beginPath();
-  ctx.arc(px, py, r * 0.35, 0, Math.PI * 2);
-  ctx.fillStyle = 'rgba(255,255,255,.5)';
-  ctx.fill();
+function drawDot(px,py,color,r){
+  ctx.beginPath(); ctx.arc(px,py,r,0,Math.PI*2);
+  ctx.fillStyle=color==='red'?'#e8192c':'#1a3bff'; ctx.fill();
+  // White specular
+  ctx.beginPath(); ctx.arc(px,py,r*.35,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,.5)'; ctx.fill();
 }
 
-// ═══════════════════════════════════
-// MOUSE
-// ═══════════════════════════════════
-let mDrag = false, mMoved = false, mX0 = 0, mY0 = 0, mCX0 = 0, mCY0 = 0;
+// ════════════════════════════════════════
+// DESKTOP INPUT
+// ════════════════════════════════════════
+let mDrag=false, mMoved=false, mX0=0, mY0=0, mCX0=0, mCY0=0;
+let rmbDrag=false, rmbX0=0, rmbY0=0, rmbCX0=0, rmbCY0=0;
 
-function onMD(e) {
-  mDrag = true; mMoved = false;
-  mX0 = e.clientX; mY0 = e.clientY; mCX0 = G.camX; mCY0 = G.camY;
+function onMD(e){
+  if(e.button===2){
+    // Right-click pan
+    rmbDrag=true; rmbX0=e.clientX; rmbY0=e.clientY;
+    rmbCX0=R.camX; rmbCY0=R.camY; return;
+  }
+  mDrag=true; mMoved=false;
+  mX0=e.clientX; mY0=e.clientY; mCX0=R.camX; mCY0=R.camY;
 }
-function onMM(e) {
-  const r = canvas.getBoundingClientRect();
-  G.hover = {
-    gx: Math.round((e.clientX - r.left - G.camX) / G.zoom / CELL),
-    gy: Math.round((e.clientY - r.top - G.camY) / G.zoom / CELL)
+function onMM(e){
+  // Update hover
+  const r=canvas.getBoundingClientRect();
+  R.hover={
+    gx:Math.round((e.clientX-r.left-R.camX)/R.zoom/CELL),
+    gy:Math.round((e.clientY-r.top -R.camX)/R.zoom/CELL) // intentional: use camX to keep symmetric
   };
-  if (!mDrag) return;
-  const dx = e.clientX - mX0, dy = e.clientY - mY0;
-  if (Math.abs(dx) > 8 || Math.abs(dy) > 8) mMoved = true;
-  G.camX = mCX0 + dx;
-  G.camY = mCY0 + dy;
-}
-function onMU() { mDrag = false; }
-function onCK(e) { if (mMoved) { mMoved = false; return; } placeTap(e.clientX, e.clientY); }
-function onWH(e) {
-  e.preventDefault();
-  const r = canvas.getBoundingClientRect();
-  applyZoom(e.deltaY < 0 ? 1.13 : 1 / 1.13, e.clientX - r.left, e.clientY - r.top);
-}
-
-// ═══════════════════════════════════
-// TOUCH
-// ═══════════════════════════════════
-let touchMoved = false, wasMulti = false;
-let tPanX0 = 0, tPanY0 = 0, tCamX0 = 0, tCamY0 = 0;
-let tPinch0 = null, tPinchCX = 0, tPinchCY = 0;
-
-function onTS(e) {
-  e.preventDefault();
-  const n = e.touches.length;
-  if (n === 1 && !wasMulti) {
-    const t = e.touches[0];
-    touchMoved = false;
-    tPanX0 = t.clientX; tPanY0 = t.clientY;
-    tCamX0 = G.camX; tCamY0 = G.camY;
-  } else {
-    wasMulti = true; touchMoved = true;
-    if (n >= 2) {
-      tPinch0 = pinchD(e.touches[0], e.touches[1]);
-      const cx = (e.touches[0].clientX + e.touches[1].clientX) / 2;
-      const cy = (e.touches[0].clientY + e.touches[1].clientY) / 2;
-      tPinchCX = cx; tPinchCY = cy;
-      tPanX0 = cx; tPanY0 = cy;
-      tCamX0 = G.camX; tCamY0 = G.camY;
-    }
-  }
-}
-
-function onTM(e) {
-  e.preventDefault();
-  const n = e.touches.length;
-  if (n === 1 && !wasMulti) {
-    const t = e.touches[0];
-    const dx = t.clientX - tPanX0, dy = t.clientY - tPanY0;
-    if (Math.abs(dx) > TAP_SLOP || Math.abs(dy) > TAP_SLOP) touchMoved = true;
-    G.camX = tCamX0 + dx; G.camY = tCamY0 + dy;
-  } else if (n >= 2) {
-    wasMulti = true; touchMoved = true;
-    const t0 = e.touches[0], t1 = e.touches[1];
-    const dist = pinchD(t0, t1);
-    const cx = (t0.clientX + t1.clientX) / 2;
-    const cy = (t0.clientY + t1.clientY) / 2;
-    const r = canvas.getBoundingClientRect();
-    if (tPinch0) applyZoom(dist / tPinch0, cx - r.left, cy - r.top);
-    tPinch0 = dist;
-    G.camX = tCamX0 + (cx - tPanX0);
-    G.camY = tCamY0 + (cy - tPanY0);
-  }
-}
-
-function onTE(e) {
-  e.preventDefault();
-  if (e.touches.length === 0 && !wasMulti && !touchMoved) {
-    const t = e.changedTouches[0];
-    placeTap(t.clientX, t.clientY);
-  }
-  if (e.touches.length === 0) {
-    wasMulti = false; touchMoved = false; tPinch0 = null;
-  } else if (e.touches.length === 1) {
-    wasMulti = true;
-    const t = e.touches[0];
-    tPanX0 = t.clientX; tPanY0 = t.clientY;
-    tCamX0 = G.camX; tCamY0 = G.camY;
-    tPinch0 = null;
-  }
-}
-
-function pinchD(t0, t1) { return Math.hypot(t0.clientX - t1.clientX, t0.clientY - t1.clientY); }
-
-// ═══════════════════════════════════
-// PLACEMENT
-// ═══════════════════════════════════
-function placeTap(cx, cy) {
-  if (!G.running) return;
-  // Check if it's our turn
-  const isLocalTurn = (G.mode === 'local' && G.players[G.turn]?.local) || (G.mode !== 'local' && G.turn === G.myColor);
-  if (!isLocalTurn) return;
-
-  const r = canvas.getBoundingClientRect();
-  const gx = Math.round((cx - r.left - G.camX) / G.zoom / CELL);
-  const gy = Math.round((cy - r.top - G.camY) / G.zoom / CELL);
-  if (gx < 0 || gy < 0 || gx > GRID || gy > GRID) return;
-
-  // In multi mode, send to server
-  if (G.mode === 'multi' || G.mode === 'ai-server') {
-    if (G.points[`${gx},${gy}`]) return;
-    sendWS({ type: 'PLACE_POINT', x: gx, y: gy });
+  R.hover={
+    gx:Math.round((e.clientX-r.left-R.camX)/R.zoom/CELL),
+    gy:Math.round((e.clientY-r.top -R.camY)/R.zoom/CELL)
+  };
+  if(rmbDrag){
+    R.camX=rmbCX0+(e.clientX-rmbX0);
+    R.camY=rmbCY0+(e.clientY-rmbY0);
     return;
   }
-
-  // Local mode
-  placePointLocal(gx, gy, G.turn);
+  if(!mDrag) return;
+  const dx=e.clientX-mX0, dy=e.clientY-mY0;
+  if(Math.abs(dx)>8||Math.abs(dy)>8) mMoved=true;
+  R.camX=mCX0+dx; R.camY=mCY0+dy;
+}
+function onMU(e){
+  if(e.button===2){ rmbDrag=false; return; }
+  mDrag=false;
+}
+function onCK(e){
+  if(mMoved){ mMoved=false; return; }
+  placeTap(e.clientX,e.clientY);
+}
+function onWH(e){
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect();
+  applyZoom(e.deltaY<0?1.13:1/1.13, e.clientX-r.left, e.clientY-r.top);
 }
 
-function placePointLocal(gx, gy, color) {
-  const key = `${gx},${gy}`;
-  if (G.points[key]) return;
-  G.points[key] = color;
-  G.anims.push({ type: 'ripple', x: gx, y: gy, color, start: performance.now(), dur: 450 });
-  const newSq = detectSquaresLocal(gx, gy, color);
-  if (newSq.length) {
-    G.scores[color] += newSq.length;
-    for (const sq of newSq) {
-      sq.num = G.squares.length + 1;
-      G.squares.push(sq);
-      G.anims.push({ type: 'sqflash', x: sq.x, y: sq.y, color, start: performance.now(), dur: 600 });
-    }
-    updateScore();
-    const n = G.players[color].name, s = newSq.length;
-    toast(`${n} forme ${s} carré${s > 1 ? 's' : ''} ! +${s}`, color === 'red' ? '#e8192c' : '#1a3bff');
-  }
-  nextTurnLocal();
-}
+// ════════════════════════════════════════
+// MOBILE TOUCH INPUT
+// ════════════════════════════════════════
+/*
+  Strategy (same as reference file):
+  ┌──────────────────────────────────────────────────────┐
+  │ 1 finger, barely moved  → TAP  → place a point       │
+  │ 1 finger, moved > slop  → PAN  → move camera         │
+  │ 2 fingers               → PINCH→ zoom + pan          │
+  │ Any multi-touch         → NEVER fire a tap           │
+  └──────────────────────────────────────────────────────┘
+*/
+let touchMoved=false, wasMulti=false;
+let tPanX0=0, tPanY0=0, tCamX0=0, tCamY0=0;
+let tPinch0=null, tPinchCX=0, tPinchCY=0;
 
-function detectSquaresLocal(gx, gy, color) {
-  const found = [];
-  for (const [dx, dy] of [[0, 0], [-1, 0], [0, -1], [-1, -1]]) {
-    const x = gx + dx, y = gy + dy;
-    if (G.points[`${x},${y}`] === color &&
-        G.points[`${x + 1},${y}`] === color &&
-        G.points[`${x},${y + 1}`] === color &&
-        G.points[`${x + 1},${y + 1}`] === color) {
-      if (!G.squares.some(s => s.x === x && s.y === y && s.color === color))
-        found.push({ x, y, color });
-    }
-  }
-  return found;
-}
+function pinchDist(t0,t1){ return Math.hypot(t0.clientX-t1.clientX,t0.clientY-t1.clientY); }
 
-function nextTurnLocal() {
-  G.turn = G.turn === 'red' ? 'blue' : 'red';
-  G.timeTurn = TURN_SEC;
-  updateTurnBar();
-  updateActiveIndicator();
-  if (!G.players[G.turn].local && G.running && G.mode === 'local') {
-    G.aiWait = true;
-    setTimeout(aiMoveLocal, 700 + Math.random() * 1100);
-  }
-}
-
-// ═══════════════════════════════════
-// LOCAL AI (unchanged, preserved)
-// ═══════════════════════════════════
-function aiMoveLocal() {
-  if (!G.running) return;
-  G.aiWait = false;
-  const c = G.turn;
-  const mv = bestMoveLocal(c) || bestMoveLocal(c === 'red' ? 'blue' : 'red') || setupMoveLocal(c) || randomMoveLocal();
-  if (mv) placePointLocal(mv.x, mv.y, c);
-}
-function bestMoveLocal(c) {
-  for (let x = 0; x <= GRID; x++)
-    for (let y = 0; y <= GRID; y++) {
-      const k = `${x},${y}`; if (G.points[k]) continue;
-      G.points[k] = c; const sq = detectSquaresLocal(x, y, c); delete G.points[k];
-      if (sq.length) return { x, y };
-    }
-  return null;
-}
-function setupMoveLocal(c) {
-  const cands = [];
-  for (let x = 0; x <= GRID; x++)
-    for (let y = 0; y <= GRID; y++) {
-      if (G.points[`${x},${y}`]) continue;
-      let sc = 0;
-      for (const [dx, dy] of [[0, 0], [-1, 0], [0, -1], [-1, -1]]) {
-        const bx = x + dx, by = y + dy; let n = 0;
-        for (const [ex, ey] of [[0, 0], [1, 0], [0, 1], [1, 1]])
-          if (G.points[`${bx + ex},${by + ey}`] === c) n++;
-        if (n === 2) sc += 2; if (n === 3) sc += 6;
-      }
-      if (sc > 0) cands.push({ x, y, sc });
-    }
-  if (!cands.length) return null;
-  cands.sort((a, b) => b.sc - a.sc);
-  return cands[0];
-}
-function randomMoveLocal() {
-  const keys = Object.keys(G.points);
-  if (!keys.length) return { x: Math.floor(GRID / 2), y: Math.floor(GRID / 2) };
-  for (let i = 0; i < 50; i++) {
-    const [px, py] = keys[Math.floor(Math.random() * keys.length)].split(',').map(Number);
-    const nx = Math.max(0, Math.min(GRID, px + Math.floor(Math.random() * 7) - 3));
-    const ny = Math.max(0, Math.min(GRID, py + Math.floor(Math.random() * 7) - 3));
-    if (!G.points[`${nx},${ny}`]) return { x: nx, y: ny };
-  }
-  return null;
-}
-
-// ═══════════════════════════════════
-// TIMERS
-// ═══════════════════════════════════
-function startTimers() {
-  clearInterval(timerGame);
-  clearInterval(timerTurn);
-  timerGame = setInterval(() => {
-    if (!G.running) return;
-    G.timeGame--;
-    updateGlobalTimer();
-    if (G.timeGame <= 0) endGame('time');
-  }, 1000);
-  timerTurn = setInterval(() => {
-    if (!G.running || G.aiWait) return;
-    G.timeTurn--;
-    updateTurnBar();
-    if (G.timeTurn <= 0) {
-      toast('⏰ Temps écoulé — tour suivant !', '#6680aa');
-      if (G.mode === 'local') {
-        nextTurnLocal();
-      }
-      // In multi mode, server handles turn skip
-    }
-  }, 1000);
-}
-function updateGlobalTimer() {
-  const m = String(Math.floor(G.timeGame / 60)).padStart(2, '0');
-  const s = String(G.timeGame % 60).padStart(2, '0');
-  const el = $('global-timer');
-  el.textContent = `${m}:${s}`;
-  el.style.color = G.timeGame <= 60 ? '#e8192c' : '#1a2a4a';
-}
-function updateTurnBar() {
-  const pct = (G.timeTurn / TURN_SEC) * 100;
-  const bar = $('turn-bar');
-  bar.style.width = pct + '%';
-  bar.style.background = pct > 50 ? '#4dde80' : pct > 25 ? '#ffc107' : '#e8192c';
-  $('turn-num').textContent = G.timeTurn;
-}
-function updateScore() {
-  $('pt-r').textContent = String(G.scores.red).padStart(2, '0');
-  $('pt-b').textContent = String(G.scores.blue).padStart(2, '0');
-  $('e-pt-r').textContent = G.scores.red;
-  $('e-pt-b').textContent = G.scores.blue;
-}
-function updateActiveIndicator() {
-  const player = G.turn === 'red' ? G.players.red : G.players.blue;
-  $('active-name').textContent = player?.name || 'Joueur';
-  $('active-dot').style.background = G.turn === 'red' ? 'var(--red)' : 'var(--blue)';
-}
-
-// ═══════════════════════════════════
-// END
-// ═══════════════════════════════════
-function endGame(reason) {
-  G.running = false;
-  clearInterval(timerGame);
-  clearInterval(timerTurn);
-  const rs = G.scores.red, bs = G.scores.blue;
-  let title, sub;
-  if (reason === 'abandon') {
-    title = `🏳️ ${G.players[G.turn]?.name || 'Joueur'} abandonne`;
-    sub = 'Fin de partie prématurée';
-  } else if (reason === 'win') {
-    title = '🏆 Vous avez gagné !';
-    sub = `Victoire — ${G.scores[G.myColor]} carré(s)`;
-  } else if (reason === 'lose') {
-    title = '😔 Défaite';
-    sub = `L'adversaire a gagné`;
-  } else if (rs > bs) {
-    title = `🏆 ${G.players.red.name} gagne !`;
-    sub = `Victoire rouge — ${rs} carré${rs > 1 ? 's' : ''}`;
-  } else if (bs > rs) {
-    title = `🏆 ${G.players.blue.name} gagne !`;
-    sub = `Victoire bleue — ${bs} carré${bs > 1 ? 's' : ''}`;
+function onTS(e){
+  e.preventDefault();
+  const n=e.touches.length;
+  if(n===1 && !wasMulti){
+    const t=e.touches[0];
+    touchMoved=false;
+    tPanX0=t.clientX; tPanY0=t.clientY;
+    tCamX0=R.camX;    tCamY0=R.camY;
   } else {
-    title = '🤝 Égalité !';
-    sub = `Les deux joueurs finissent à ${rs} carré${rs > 1 ? 's' : ''}`;
-  }
-  $('end-title').textContent = title;
-  $('end-sub').textContent = sub;
-  updateScore();
-  setTimeout(() => showScreen('screen-end'), 600);
-}
-function abandonGame() {
-  if (!G.running) return;
-  if (confirm('Abandonner la partie en cours ?')) {
-    if (G.mode === 'multi' || G.mode === 'ai-server') {
-      sendWS({ type: 'ABANDON' });
+    wasMulti=true; touchMoved=true;
+    if(n>=2){
+      tPinch0  = pinchDist(e.touches[0],e.touches[1]);
+      tPinchCX = (e.touches[0].clientX+e.touches[1].clientX)/2;
+      tPinchCY = (e.touches[0].clientY+e.touches[1].clientY)/2;
+      tPanX0   = tPinchCX; tPanY0=tPinchCY;
+      tCamX0   = R.camX;   tCamY0=R.camY;
     }
-    endGame('abandon');
   }
 }
 
-// ═══════════════════════════════════
+function onTM(e){
+  e.preventDefault();
+  const n=e.touches.length;
+  if(n===1 && !wasMulti){
+    const t=e.touches[0];
+    const dx=t.clientX-tPanX0, dy=t.clientY-tPanY0;
+    if(Math.abs(dx)>TAP_SLOP||Math.abs(dy)>TAP_SLOP) touchMoved=true;
+    R.camX=tCamX0+dx; R.camY=tCamY0+dy;
+  } else if(n>=2){
+    wasMulti=true; touchMoved=true;
+    const t0=e.touches[0],t1=e.touches[1];
+    const dist=pinchDist(t0,t1);
+    const cx=(t0.clientX+t1.clientX)/2;
+    const cy=(t0.clientY+t1.clientY)/2;
+    const r=canvas.getBoundingClientRect();
+    if(tPinch0) applyZoom(dist/tPinch0, cx-r.left, cy-r.top);
+    tPinch0=dist;
+    R.camX=tCamX0+(cx-tPanX0);
+    R.camY=tCamY0+(cy-tPanY0);
+  }
+}
+
+function onTE(e){
+  e.preventDefault();
+  if(e.touches.length===0 && !wasMulti && !touchMoved){
+    const t=e.changedTouches[0];
+    placeTap(t.clientX,t.clientY);
+  }
+  if(e.touches.length===0){
+    wasMulti=false; touchMoved=false; tPinch0=null;
+  } else if(e.touches.length===1){
+    // 2→1: restart pan reference, block tap
+    wasMulti=true;
+    const t=e.touches[0];
+    tPanX0=t.clientX; tPanY0=t.clientY;
+    tCamX0=R.camX;    tCamY0=R.camY;
+    tPinch0=null;
+  }
+}
+
+// ════════════════════════════════════════
+// PLACE POINT
+// ════════════════════════════════════════
+function placeTap(cx,cy){
+  if(!R.running) return;
+  // In multiplayer, only local player's turn
+  if(myColor && R.turn!==myColor){
+    toast("Ce n'est pas votre tour !",'#6680aa'); return;
+  }
+  if(!canvas) return;
+  const r=canvas.getBoundingClientRect();
+  const gx=Math.round((cx-r.left-R.camX)/R.zoom/CELL);
+  const gy=Math.round((cy-r.top -R.camY)/R.zoom/CELL);
+  if(gx<0||gy<0||gx>GRID||gy>GRID) return;
+  if(R.points[`${gx},${gy}`]){ toast('Intersection déjà occupée','#6680aa'); return; }
+  wsSend({type:'PLACE_POINT',x:gx,y:gy});
+}
+
+// ════════════════════════════════════════
+// GAME OVER
+// ════════════════════════════════════════
+function endGame(msg){
+  R.running=false;
+  const rs=msg.scores.red, bs=msg.scores.blue;
+  const rp=serverPlayers['red']||{name:'Rouge'};
+  const bp=serverPlayers['blue']||{name:'Bleu'};
+  let title,sub;
+  if(msg.winner==='red'){
+    title=`🏆 ${rp.name} gagne !`; sub=`Victoire rouge — ${rs} carré${rs>1?'s':''}`;
+  } else if(msg.winner==='blue'){
+    title=`🏆 ${bp.name} gagne !`; sub=`Victoire bleue — ${bs} carré${bs>1?'s':''}`;
+  } else {
+    title='🤝 Égalité !'; sub=`Les deux joueurs finissent à égalité`;
+  }
+  $('end-title').textContent=title;
+  $('end-sub').textContent=sub;
+  updateScore();
+  setTimeout(()=>showScreen('screen-end'),600);
+}
+
+// ════════════════════════════════════════
 // TOAST
-// ═══════════════════════════════════
+// ════════════════════════════════════════
 let toastTO;
-function toast(msg, color = '#1a3bff') {
-  const el = $('notif');
-  el.textContent = msg;
-  el.style.color = color;
-  el.style.borderLeft = `4px solid ${color}`;
+function toast(msg,color='#1a3bff'){
+  const el=$('notif');
+  el.textContent=msg;
+  el.style.color=color;
+  el.style.borderLeftColor=color;
   el.classList.add('show');
   clearTimeout(toastTO);
-  toastTO = setTimeout(() => el.classList.remove('show'), 2800);
+  toastTO=setTimeout(()=>el.classList.remove('show'),2800);
 }
 
-// ═══════════════════════════════════
-// RESIZE
-// ═══════════════════════════════════
-window.addEventListener('resize', () => {
-  if (!canvas) return;
-  const wrap = $('canvas-wrap');
-  canvas.width = wrap.clientWidth;
-  canvas.height = wrap.clientHeight;
-});
+// ════════════════════════════════════════
+// HOME SCREEN CANVAS — grille animée
+// ════════════════════════════════════════
+(function initHomeCanvas(){
+  const hc = $('home-canvas');
+  if(!hc) return;
+  const hx = hc.getContext('2d');
+  const CELL_H = 40;
+  let W,H, particles=[], squares=[];
 
-// ═══════════════════════════════════
-// MODAL
-// ═══════════════════════════════════
-function openModal() { $('modal-how').classList.add('open'); }
-function closeModal() { $('modal-how').classList.remove('open'); }
-$('modal-how').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+  function resize(){
+    W = hc.width  = hc.offsetWidth;
+    H = hc.height = hc.offsetHeight;
+  }
+  window.addEventListener('resize', resize);
+  resize();
 
-// ═══════════════════════════════════
+  // Génère des points flottants
+  function mkParticle(){
+    const color = Math.random()<.5?'red':'blue';
+    const gx = Math.floor(Math.random()*(W/CELL_H+2));
+    const gy = Math.floor(Math.random()*(H/CELL_H+2));
+    return {
+      x: gx*CELL_H, y: gy*CELL_H,
+      color,
+      alpha:0, targetAlpha: .18+Math.random()*.25,
+      size: 4+Math.random()*3,
+      vx:(Math.random()-.5)*.3, vy:(Math.random()-.5)*.3,
+      life:0, maxLife:300+Math.random()*400
+    };
+  }
+
+  // Génère des mini-carrés déco (transparents)
+  function mkSquare(){
+    const color = Math.random()<.5?'red':'blue';
+    return {
+      x: Math.random()*W, y: Math.random()*H,
+      size: CELL_H*(1+Math.floor(Math.random()*2)),
+      color, alpha:0, targetAlpha:.06+Math.random()*.07,
+      life:0, maxLife:500+Math.random()*600
+    };
+  }
+
+  for(let i=0;i<14;i++) particles.push(mkParticle());
+  for(let i=0;i< 6;i++) squares.push(mkSquare());
+
+  let homeAnimId;
+  function drawHome(){
+    if(!$('screen-welcome').classList.contains('active')){
+      cancelAnimationFrame(homeAnimId); return;
+    }
+    homeAnimId = requestAnimationFrame(drawHome);
+    hx.clearRect(0,0,W,H);
+
+    // Carrés déco
+    squares = squares.map(s=>{
+      s.life++;
+      const t = s.life/s.maxLife;
+      s.alpha = t<.2 ? s.targetAlpha*(t/.2)
+               :t>.8 ? s.targetAlpha*(1-(t-.8)/.2)
+               :s.targetAlpha;
+      const col = s.color==='red'?`rgba(232,25,44,${s.alpha})`:`rgba(26,59,255,${s.alpha})`;
+      hx.strokeStyle=col; hx.lineWidth=1.5;
+      hx.strokeRect(s.x,s.y,s.size,s.size);
+      hx.fillStyle=s.color==='red'?`rgba(232,25,44,${s.alpha*.4})`:`rgba(26,59,255,${s.alpha*.4})`;
+      hx.fillRect(s.x,s.y,s.size,s.size);
+      // Numéro
+      if(s.alpha>.03 && s.size>=CELL_H){
+        hx.fillStyle=col;
+        hx.font=`bold ${Math.round(s.size*.38)}px "Fredoka One",cursive`;
+        hx.textAlign='center'; hx.textBaseline='middle';
+        hx.fillText(String(Math.floor(s.life/(s.maxLife/4))+1), s.x+s.size/2, s.y+s.size/2);
+      }
+      if(s.life>=s.maxLife) return mkSquare();
+      return s;
+    });
+
+    // Points flottants
+    particles = particles.map(p=>{
+      p.life++; p.x+=p.vx; p.y+=p.vy;
+      const t=p.life/p.maxLife;
+      p.alpha=t<.15?p.targetAlpha*(t/.15):t>.8?p.targetAlpha*(1-(t-.8)/.2):p.targetAlpha;
+      const col=p.color==='red'?`rgba(232,25,44,${p.alpha})`:`rgba(26,59,255,${p.alpha})`;
+      hx.beginPath(); hx.arc(p.x,p.y,p.size,0,Math.PI*2);
+      hx.fillStyle=col; hx.fill();
+      // Reflet blanc
+      hx.beginPath(); hx.arc(p.x,p.y,p.size*.35,0,Math.PI*2);
+      hx.fillStyle=`rgba(255,255,255,${p.alpha*.6})`; hx.fill();
+      if(p.life>=p.maxLife) return mkParticle();
+      return p;
+    });
+  }
+
+  // Lance l'animation quand l'accueil est visible
+  const origShow = window.showScreen;
+  window.showScreen = function(id){
+    origShow(id);
+    if(id==='screen-welcome'){
+      cancelAnimationFrame(homeAnimId);
+      resize();
+      homeAnimId=requestAnimationFrame(drawHome);
+    }
+  };
+
+  // Lance immédiatement si on arrive sur le welcome
+  if($('screen-welcome').classList.contains('active')){
+    homeAnimId=requestAnimationFrame(drawHome);
+  }
+})();
+
+// ════════════════════════════════════════
 // INIT
-// ═══════════════════════════════════
-connectWS();
-// Keepalive ping
-setInterval(() => {
-  if (G.ws?.readyState === WebSocket.OPEN) sendWS({ type: 'PING' });
-}, 30000);
+// ════════════════════════════════════════
+wsConnect();
 </script>
 </body>
 </html>
