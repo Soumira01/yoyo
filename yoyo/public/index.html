@@ -18,10 +18,10 @@
       --blue-l: rgba(26, 59, 255, 0.13);
       --grid: #c8d8f0;
       --bg: #eef3fc;
-      --bar-h: 56px;
+      --bar-h: 64px;
     }
     @media (max-width: 600px) {
-      :root { --bar-h: 48px; }
+      :root { --bar-h: 56px; }
     }
 
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
@@ -113,10 +113,10 @@
 
     #top-bar {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 6px 12px;
+      padding: 8px 12px;
       background: rgba(238, 243, 252, 0.97); backdrop-filter: blur(8px);
       border-bottom: 2px solid var(--grid);
-      flex-shrink: 0; z-index: 20; gap: 8px; flex-wrap: nowrap;
+      flex-shrink: 0; z-index: 20; gap: 12px; flex-wrap: wrap;
       height: var(--bar-h); overflow: hidden;
     }
     .top-logo { font-family: 'Fredoka One', cursive; font-size: clamp(20px, 4vw, 30px); color: var(--red); flex-shrink: 0; }
@@ -237,7 +237,7 @@
     <div class="game-code" id="display-code">----</div>
     <p class="pulse">En attente d'un adversaire…</p>
     <div style="margin-top:18px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
-      <button class="btn btn-blue" onclick="startGame()">Jouer vs IA</button>
+      <button class="btn btn-blue" onclick="startAIGame()">Jouer vs IA</button>
       <button class="btn btn-gray" onclick="showScreen('screen-welcome')">Retour</button>
     </div>
   </div>
@@ -282,7 +282,6 @@
       <button class="zbtn" onclick="zoomBtn(1/1.25)" title="Zoom −">−</button>
       <button class="zbtn" onclick="resetView()" title="Vue par défaut" style="font-size:13px;">⌖</button>
     </div>
-    <button class="btn btn-red btn-sm" onclick="abandonGame()">Abandonner</button>
   </div>
   <div id="canvas-wrap"><canvas id="game-canvas"></canvas></div>
 </div>
@@ -321,6 +320,8 @@
 
 <div id="notif"></div>
 
+<button id="abandon-btn" class="btn btn-red btn-sm" onclick="abandonGame()" style="position: fixed; bottom: 20px; right: 20px; z-index: 100; display: none;">Abandonner</button>
+
 <script>
   "use strict";
 
@@ -337,6 +338,107 @@
   const TAP_SLOP = 10;
 
   const AVATARS = ['🤖','👾','🐸','🦊','🐙','🦄','🐺','🦁','🐯','🦋'];
+
+  // ═══════════════════════════════════
+  // WEBSOCKET FOR MULTIPLAYER
+  // ═══════════════════════════════════
+  let ws = null;
+  let isMultiplayer = false;
+  let myColor = null;
+  let roomCode = null;
+
+  function connectWS() {
+    ws = new WebSocket('ws://localhost:3000');
+    ws.onopen = () => console.log('Connected to server');
+    ws.onmessage = handleWSMessage;
+    ws.onclose = () => {
+      console.log('Disconnected');
+      isMultiplayer = false;
+      toast('Connexion perdue', '#e8192c');
+    };
+    ws.onerror = () => toast('Erreur de connexion', '#e8192c');
+  }
+
+  function handleWSMessage(event) {
+    const msg = JSON.parse(event.data);
+    switch (msg.type) {
+      case 'ROOM_CREATED':
+        roomCode = msg.code;
+        myColor = msg.yourColor;
+        G.players[myColor] = { name: msg.yourName, avatar: msg.yourAvatar, local: true };
+        G.players[myColor === 'red' ? 'blue' : 'red'] = { name: 'En attente...', avatar: '⏳', local: false };
+        $('display-code').textContent = roomCode;
+        showScreen('screen-create');
+        break;
+      case 'ROOM_JOINED':
+        roomCode = msg.code;
+        myColor = msg.yourColor;
+        G.players[myColor] = { name: msg.yourName, avatar: msg.yourAvatar, local: true };
+        G.players[myColor === 'red' ? 'blue' : 'red'] = { name: 'En attente...', avatar: '⏳', local: false };
+        isMultiplayer = true;
+        startGame();
+        break;
+      case 'OPPONENT_JOINED':
+        const opp = msg.players.find(p => p.color !== myColor);
+        G.players[opp.color] = { name: opp.name, avatar: opp.avatar, local: false };
+        refreshHUD();
+        break;
+      case 'AI_GAME_READY':
+        roomCode = msg.code;
+        myColor = msg.yourColor;
+        G.players[myColor] = { name: msg.yourName, avatar: msg.yourAvatar, local: true };
+        G.players[msg.aiColor] = { name: msg.aiName, avatar: msg.aiAvatar, local: false };
+        isMultiplayer = true;
+        startGame();
+        break;
+      case 'STATE_UPDATE':
+        updateGameState(msg);
+        break;
+      case 'GAME_START':
+        // already handled
+        break;
+      case 'SQUARES_FORMED':
+        for (const sq of msg.squares) {
+          G.squares.push(sq);
+          G.anims.push({ type: 'sqflash', x: sq.x, y: sq.y, color: msg.color, start: performance.now(), dur: 600 });
+        }
+        G.scores[msg.color] += msg.scored;
+        updateScore();
+        const player = G.players[msg.color];
+        toast(`${player.name} forme ${msg.scored} carré${msg.scored > 1 ? 's' : ''} ! +${msg.scored}`, msg.color === 'red' ? '#e8192c' : '#1a3bff');
+        break;
+      case 'GAME_OVER':
+        endGame('score');
+        break;
+      case 'PLAYER_ABANDONED':
+        toast(`${G.players[msg.color].name} a abandonné`, '#6680aa');
+        endGame('abandon');
+        break;
+      case 'OPPONENT_DISCONNECTED':
+        toast('Adversaire déconnecté', '#e8192c');
+        endGame('disconnect');
+        break;
+      case 'ERROR':
+        toast(msg.message, '#e8192c');
+        break;
+    }
+  }
+
+  function updateGameState(msg) {
+    G.points = {};
+    for (const p of msg.points) {
+      G.points[`${p.x},${p.y}`] = p.color;
+    }
+    G.squares = msg.squares;
+    G.scores = msg.scores;
+    G.turn = msg.turn;
+    G.timeGame = msg.timeLeft;
+    G.timeTurn = msg.turnTimeLeft;
+    G.running = !msg.gameOver;
+    refreshHUD();
+    updateGlobalTimer();
+    updateTurnBar();
+  }
 
   // ═══════════════════════════════════
   // STATE
@@ -374,22 +476,40 @@
     $(id).classList.add('active');
   }
   function showCreate() {
-    $('display-code').textContent = String(1000 + Math.floor(Math.random() * 9000));
-    showScreen('screen-create');
+    connectWS();
+    ws.onopen = () => {
+      ws.send(JSON.stringify({type: 'CREATE_ROOM'}));
+    };
   }
   function showJoin() { $('join-input').value = ''; $('join-error').textContent = ''; showScreen('screen-join'); }
   function joinGame() {
     if ($('join-input').value.length !== 4) { $('join-error').textContent = 'Code invalide (4 chiffres requis).'; return; }
-    startGame();
+    connectWS();
+    ws.onopen = () => {
+      ws.send(JSON.stringify({type: 'JOIN_ROOM', code: $('join-input').value}));
+    };
   }
-  function openModal() { $('modal-how').classList.add('open'); }
-  function closeModal() { $('modal-how').classList.remove('open'); }
-  $('modal-how').addEventListener('click', e => { if (e.target === e.currentTarget) closeModal(); });
+  function startAIGame() {
+    connectWS();
+    ws.onopen = () => {
+      ws.send(JSON.stringify({type: 'START_AI_GAME'}));
+    };
+  }
 
   // ═══════════════════════════════════
   // GAME START (amélioré selon PDF)
   // ═══════════════════════════════════
   function startGame() {
+    if (isMultiplayer) {
+      // Multiplayer game started by server
+      refreshHUD();
+      showScreen('screen-game');
+      initCanvas();
+      $('abandon-btn').style.display = 'block';
+      return;
+    }
+
+    // Local AI game
     const pool = [...AVATARS];
     const av1 = pool.splice(Math.floor(Math.random() * pool.length), 1)[0];
     const av2 = pool[Math.floor(Math.random() * pool.length)];
@@ -416,6 +536,7 @@
     refreshHUD();
     showScreen('screen-game');
     initCanvas();
+    $('abandon-btn').style.display = 'block';
     startTimers();
     toast('La partie commence ! 🎮', '#1a3bff');
   }
@@ -674,7 +795,7 @@
   // PLACEMENT
   // ═══════════════════════════════════
   function placeTap(cx, cy) {
-    if (!G.running || !G.players[G.turn].local) return;
+    if (!G.running || (isMultiplayer && G.players[G.turn].local === false)) return;
     const r = canvas.getBoundingClientRect();
     const gx = Math.round((cx - r.left - G.camX) / G.zoom / CELL);
     const gy = Math.round((cy - r.top - G.camY) / G.zoom / CELL);
@@ -682,10 +803,13 @@
     placePoint(gx, gy, G.turn);
   }
 
-  // ═══════════════════════════════════
-  // GAME LOGIC (avec extension grille)
-  // ═══════════════════════════════════
   function placePoint(gx, gy, color) {
+    if (isMultiplayer) {
+      ws.send(JSON.stringify({type: 'PLACE_POINT', x: gx, y: gy}));
+      return;
+    }
+
+    // Local logic
     const key = `${gx},${gy}`;
     if (G.points[key]) return;
     
@@ -876,6 +1000,7 @@
     G.running = false;
     clearInterval(timerGame);
     clearInterval(timerTurn);
+    $('abandon-btn').style.display = 'none';
     const rs = G.scores.red, bs = G.scores.blue;
     let title, sub;
     if (reason === 'abandon') {
@@ -898,6 +1023,10 @@
   }
   
   function abandonGame() {
+    if (isMultiplayer) {
+      ws.send(JSON.stringify({type: 'ABANDON'}));
+      return;
+    }
     if (!G.running) return;
     if (confirm('Abandonner la partie en cours ?')) endGame('abandon');
   }
