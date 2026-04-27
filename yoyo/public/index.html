@@ -3,1278 +3,981 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>YOYO</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#eef3fc">
+<title>YOYO — Le jeu des carrés</title>
 <style>
-/* ════════════════════════════════════════════
-   RESET & BASE
-════════════════════════════════════════════ */
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+@import url('https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap');
 
 :root {
-  --red:      #e82222;
-  --blue:     #1e5fe8;
-  --red-soft: rgba(232,34,34,0.13);
-  --blu-soft: rgba(30,95,232,0.13);
-  --bg:       #edf2fb;
-  --grid-major: #bfcde6;
-  --grid-minor: #d8e3f3;
-  --white:    #ffffff;
-  --dark:     #18243f;
-  --muted:    #6b80a8;
-  --hud-h:    56px;
-  --font:     'Nunito', sans-serif;
-  --radius:   14px;
-  --shadow:   0 2px 16px rgba(24,36,63,0.10);
+  --red:    #e8192c;
+  --blue:   #1a3bff;
+  --red-l:  rgba(232,25,44,.13);
+  --blue-l: rgba(26,59,255,.13);
+  --grid:   #c8d8f0;
+  --bg:     #eef3fc;
+  --bar-h:  56px;
+}
+@media(max-width:600px){ :root{ --bar-h:48px; } }
+
+*,*::before,*::after{ margin:0; padding:0; box-sizing:border-box; }
+html,body{
+  width:100%; height:100%;
+  overflow:hidden;
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-tap-highlight-color:transparent;
+  font-family:'Nunito',sans-serif;
+  background:var(--bg);
 }
 
-html, body {
-  width: 100%; height: 100%;
-  overflow: hidden;
-  font-family: var(--font);
-  background: var(--bg);
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  -webkit-user-select: none;
+/* ── SCREENS ─────────────────────────────── */
+.screen{ position:absolute; inset:0; display:none; flex-direction:column; align-items:center; justify-content:center; }
+.screen.active{ display:flex; }
+.grid-bg{
+  background:var(--bg)
+    linear-gradient(var(--grid) 1px,transparent 1px),
+    linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:40px 40px;
 }
 
-/* ════════════════════════════════════════════
-   SCREENS
-════════════════════════════════════════════ */
-.screen {
-  position: fixed; inset: 0;
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center;
+/* ── BUTTONS ─────────────────────────────── */
+.btn{
+  font-family:'Nunito',sans-serif; font-weight:800; font-size:15px;
+  padding:13px 26px; border:none; border-radius:50px; cursor:pointer;
+  transition:transform .15s,box-shadow .15s; letter-spacing:.4px; white-space:nowrap;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
 }
-.screen.off { display: none !important; }
+.btn:hover { transform:translateY(-3px); }
+.btn:active{ transform:translateY(1px);  }
+.btn-green { background:#4dde80; color:#1a5c33; box-shadow:0 4px 0 #28a455; }
+.btn-green:hover  { box-shadow:0 7px 0 #28a455; }
+.btn-purple{ background:#b16bff; color:#fff;    box-shadow:0 4px 0 #7a3db8; }
+.btn-purple:hover { box-shadow:0 7px 0 #7a3db8; }
+.btn-red   { background:var(--red);  color:#fff; box-shadow:0 4px 0 #9c0f1c; }
+.btn-red:hover    { box-shadow:0 7px 0 #9c0f1c; }
+.btn-blue  { background:var(--blue); color:#fff; box-shadow:0 4px 0 #0f20b8; }
+.btn-blue:hover   { box-shadow:0 7px 0 #0f20b8; }
+.btn-gray  { background:#ccd4e8; color:#4a5568; box-shadow:0 4px 0 #9aa4bc; }
+.btn-gray:hover   { box-shadow:0 7px 0 #9aa4bc; }
+.btn-sm{ font-size:12px; padding:7px 14px; }
+.btn-row{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
 
-/* ════════════════════════════════════════════
-   HOME
-════════════════════════════════════════════ */
-#s-home {
-  background: var(--bg);
-  background-image:
-    linear-gradient(var(--grid-minor) 1px, transparent 1px),
-    linear-gradient(90deg, var(--grid-minor) 1px, transparent 1px);
-  background-size: 36px 36px;
+/* ── WELCOME ─────────────────────────────── */
+.logo{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(52px,12vw,90px);
+  color:var(--red); letter-spacing:6px;
+  text-shadow:4px 4px 0 rgba(232,25,44,.2);
+  animation:logobounce 2.4s ease-in-out infinite;
 }
-
-.home-logo {
-  font-size: clamp(3.5rem, 14vw, 7rem);
-  font-weight: 900;
-  color: var(--red);
-  letter-spacing: -3px;
-  line-height: 1;
-  animation: popIn .6s cubic-bezier(.34,1.56,.64,1) both;
+@keyframes logobounce{ 0%,100%{transform:translateY(0)} 50%{transform:translateY(-10px)} }
+.subtitle{
+  font-size:clamp(13px,3vw,18px); color:#6680aa; font-weight:600;
+  margin:6px 0 40px; text-align:center; padding:0 16px;
 }
-@keyframes popIn {
-  from { transform: scale(.4) rotate(-10deg); opacity: 0; }
-  to   { transform: none; opacity: 1; }
-}
-.home-tagline {
-  margin: .4em 0 2.5rem;
-  font-size: clamp(.8rem,3vw,1rem);
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  color: var(--muted);
-}
-.home-btns {
-  display: flex; flex-direction: column;
-  gap: .9rem; width: min(84vw, 280px);
-}
-.btn {
-  display: flex; align-items: center; justify-content: center; gap: .5em;
-  padding: .85em 1.6em;
-  border: none; border-radius: 50px;
-  font-family: var(--font); font-size: 1rem; font-weight: 800;
-  cursor: pointer; transition: transform .12s, box-shadow .12s;
-  -webkit-tap-highlight-color: transparent; outline: none;
-}
-.btn:active { transform: scale(.94); }
-.btn-green  { background: #22c55e; color: #fff; box-shadow: 0 4px 14px rgba(34,197,94,.35); }
-.btn-green:hover  { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(34,197,94,.45); }
-.btn-violet { background: #8b5cf6; color: #fff; box-shadow: 0 4px 14px rgba(139,92,246,.35); }
-.btn-violet:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(139,92,246,.45); }
-.btn-blue   { background: var(--blue); color: #fff; box-shadow: 0 4px 14px rgba(30,95,232,.35); }
-.btn-blue:hover   { transform: translateY(-2px); }
-.btn-ghost  { background: transparent; color: var(--muted); border: 2px solid var(--grid-major); }
-.btn-ghost:hover  { background: rgba(0,0,0,.04); }
-.btn-red    { background: var(--red); color: #fff; box-shadow: 0 4px 14px rgba(232,34,34,.35); }
-
-.howto-link {
-  margin-top: 1.2rem; color: var(--muted);
-  font-size: .85rem; font-weight: 600;
-  cursor: pointer; text-decoration: underline;
+.help-link{
+  position:absolute; top:16px; right:18px;
+  font-size:13px; color:var(--blue); cursor:pointer; font-weight:700; text-decoration:underline;
 }
 
-/* ════════════════════════════════════════════
-   MODALS
-════════════════════════════════════════════ */
-.overlay {
-  position: fixed; inset: 0; z-index: 200;
-  background: rgba(18,30,62,.55);
-  backdrop-filter: blur(6px);
-  display: flex; align-items: center; justify-content: center;
-  animation: fadein .2s;
+/* ── CARD ────────────────────────────────── */
+.card{
+  background:#fff; border-radius:22px;
+  padding:clamp(24px,6vw,44px) clamp(20px,8vw,52px);
+  box-shadow:0 8px 32px rgba(26,59,255,.12);
+  text-align:center; max-width:420px; width:92%;
 }
-.overlay.off { display: none !important; }
-@keyframes fadein { from { opacity:0 } to { opacity:1 } }
-
-.card {
-  background: var(--white);
-  border-radius: 22px;
-  padding: 2rem 1.8rem;
-  width: min(92vw, 360px);
-  box-shadow: 0 8px 40px rgba(18,30,62,.18);
-  text-align: center;
-  animation: slideup .3s cubic-bezier(.34,1.56,.64,1);
+.card h2{ font-family:'Fredoka One',cursive; font-size:clamp(22px,5vw,28px); color:#1a2a4a; margin-bottom:16px; }
+.card p { color:#6680aa; font-size:14px; font-weight:600; margin-bottom:10px; }
+.game-code{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(40px,10vw,58px); color:var(--red);
+  letter-spacing:12px; margin:16px 0;
+  text-shadow:2px 2px 0 rgba(232,25,44,.2);
 }
-@keyframes slideup {
-  from { transform: translateY(36px) scale(.93); opacity:0; }
-  to   { transform: none; opacity:1; }
+.code-input{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(28px,8vw,40px); letter-spacing:8px;
+  text-align:center; width:min(210px,80%);
+  border:3px solid var(--grid); border-radius:12px;
+  padding:10px; color:var(--blue); outline:none;
+  transition:border-color .2s; touch-action:manipulation;
+  background:#fff;
 }
-.card h2 { font-size: 1.45rem; font-weight: 900; color: var(--dark); margin-bottom: .3em; }
-.card p  { font-size: .88rem; color: var(--muted); margin-bottom: 1.2rem; }
-.card-row { display:flex; gap:.7rem; justify-content:center; margin-top:1rem; }
+.code-input:focus{ border-color:var(--blue); }
+@keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.4} }
+.pulse{ animation:pulse 1.5s ease-in-out infinite; }
+.err-msg{ color:var(--red); font-size:13px; font-weight:700; min-height:18px; margin-top:8px; }
 
-.big-code {
-  font-size: 3.2rem; font-weight: 900;
-  letter-spacing: 10px; color: var(--dark);
-  background: var(--bg); border-radius: 14px;
-  padding: .5em .3em; margin: .8rem 0;
-  font-variant-numeric: tabular-nums;
-}
-
-.code-in {
-  width:100%; text-align:center;
-  font-size: 2.8rem; font-weight: 900;
-  letter-spacing: 8px; border-radius: 14px;
-  border: 3px solid var(--grid-major);
-  padding: .4em .2em; color: var(--dark);
-  font-family: var(--font); outline:none;
-  transition: border .2s; background: var(--bg);
-  margin-bottom: .4rem;
-}
-.code-in:focus { border-color: var(--blue); }
-
-.err { color: var(--red); font-size: .88rem; min-height: 1.2em; margin-top:.2rem; }
-
-.dots span {
+/* Waiting dots */
+.wait-dots span{
   display:inline-block; font-size:1.4rem;
-  animation: boing .7s infinite;
+  animation:wdot .7s infinite;
 }
-.dots span:nth-child(2) { animation-delay:.15s; }
-.dots span:nth-child(3) { animation-delay:.3s; }
-@keyframes boing { 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-7px)} }
+.wait-dots span:nth-child(2){ animation-delay:.15s; }
+.wait-dots span:nth-child(3){ animation-delay:.3s; }
+@keyframes wdot{ 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-7px)} }
 
-/* howto scroll */
-.howto-body {
-  max-height: 60vh; overflow-y:auto;
-  text-align:left; padding-right:.4rem;
-}
-.howto-body h3 { font-size:1rem; font-weight:800; color:var(--dark); margin:.9rem 0 .3rem; }
-.howto-body p, .howto-body li {
-  font-size:.86rem; color:var(--muted); line-height:1.65;
-}
-.howto-body ul { padding-left:1.2rem; margin-bottom:.5rem; }
+/* ── GAME SCREEN ─────────────────────────── */
+#screen-game{ background:var(--bg); flex-direction:column; align-items:stretch; overflow:hidden; }
 
-/* ════════════════════════════════════════════
-   CONNECTING SPLASH
-════════════════════════════════════════════ */
-#s-conn {
-  background: var(--bg); z-index:999;
-  gap:.8rem;
+/* Top bar */
+#top-bar{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:6px 12px;
+  background:rgba(238,243,252,.97); backdrop-filter:blur(8px);
+  border-bottom:2px solid var(--grid);
+  flex-shrink:0; z-index:20; gap:8px; flex-wrap:nowrap;
+  height:var(--bar-h); overflow:hidden;
 }
-.spinner {
-  width:44px; height:44px;
-  border: 5px solid var(--grid-major);
-  border-top-color: var(--red);
-  border-radius:50%;
-  animation: spin .65s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-#s-conn p { font-weight:700; color:var(--muted); }
+.top-logo{ font-family:'Fredoka One',cursive; font-size:clamp(20px,4vw,30px); color:var(--red); flex-shrink:0; }
 
-/* ════════════════════════════════════════════
-   GAME SCREEN
-════════════════════════════════════════════ */
-#s-game {
-  justify-content: flex-start;
-  align-items: stretch;
-  overflow: hidden;
-}
-
-/* ─── HUD ──────────────────────────────────
-   Layout: [logo] [active-pill] [timers] [scores-col] [ctrl]
-   On very small screens scores column hides names,
-   active pill hides "joue" text.
-─────────────────────────────────────────── */
-#hud {
-  position: relative; z-index: 50;
-  flex-shrink: 0;
-  height: var(--hud-h);
-  background: var(--white);
-  border-bottom: 1.5px solid #dde6f5;
-  box-shadow: 0 2px 12px rgba(24,36,63,.07);
-  display: flex;
-  align-items: center;
-  gap: .45rem;
-  padding: 0 .7rem;
-  overflow: hidden;
-}
-
-/* Logo */
-.hud-logo {
-  font-size: 1.55rem; font-weight: 900;
-  color: var(--red); letter-spacing: -1px;
-  flex-shrink: 0;
-}
-
-/* Active player pill */
-.hud-active {
-  display: flex; align-items: center; gap: .35rem;
-  background: var(--bg);
-  border-radius: 50px;
-  padding: .26rem .7rem;
-  font-size: .8rem; font-weight: 800;
-  overflow: hidden;
-  border: 1.5px solid transparent;
-  transition: border-color .3s, background .3s;
-  flex-shrink: 1;
-  min-width: 0;
-  max-width: 160px;
-}
-.hud-active .dot {
-  width: 8px; height: 8px; border-radius: 50%; flex-shrink:0;
-  background: var(--muted);
-  transition: background .3s;
-}
-.hud-active .aname {
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  color: var(--dark);
-}
-.hud-active .ajoue { color: var(--muted); font-weight:600; flex-shrink:0; font-size:.75rem; }
-.hud-active.red-turn  { border-color:rgba(232,34,34,.3); background:rgba(232,34,34,.07); }
-.hud-active.red-turn  .dot { background: var(--red); }
-.hud-active.blue-turn { border-color:rgba(30,95,232,.3); background:rgba(30,95,232,.07); }
-.hud-active.blue-turn .dot { background: var(--blue); }
-
-/* Spacer pushes timers to center */
-.hud-flex { flex: 1; }
-
-/* Timers */
-.hud-timers {
-  display: flex; flex-direction:column;
-  align-items:center; gap:3px;
-  flex-shrink: 0;
-}
-.hud-gtime {
-  font-size:1.18rem; font-weight:900;
-  color: var(--dark); font-variant-numeric:tabular-nums;
-  line-height:1;
-}
-.hud-gtime.urgent { color:var(--red); animation:flash .55s infinite alternate; }
-@keyframes flash { to { opacity:.45; } }
-
-.hud-tour-row {
-  display:flex; align-items:center; gap:.3rem;
-  font-size:.7rem; font-weight:700; color:var(--muted);
-  white-space: nowrap;
-}
-.hud-bar-wrap {
-  width: 52px; height: 5px;
-  background: #dde6f5; border-radius:3px; overflow:hidden;
-}
-.hud-bar {
-  height:100%; border-radius:3px;
-  transition: width .9s linear, background .3s;
-}
-.hud-bar.red  { background: var(--red); }
-.hud-bar.blue { background: var(--blue); }
-.hud-bar.warn { background: #f59e0b; }
-
-/* Spacer */
-.hud-flex2 { flex: 1; }
-
-/* Scores */
-.hud-scores {
-  display:flex; flex-direction:column; gap:2px;
-  flex-shrink: 0;
-}
-.hud-score-row {
-  display:flex; align-items:center; gap:.28rem;
-  font-weight:800;
-}
-.hud-score-row .av  { font-size:.9rem; }
-.hud-score-row .sname {
-  font-size:.72rem; font-weight:700; color: var(--dark);
-  max-width:62px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-}
-.hud-score-row .snum {
-  font-size:1rem; font-weight:900;
-  min-width:2ch; text-align:right;
-  font-variant-numeric:tabular-nums;
-}
-.hud-score-row.red  .snum { color:var(--red); }
-.hud-score-row.blue .snum { color:var(--blue); }
-
-/* Controls */
-.hud-ctrl {
-  display:flex; align-items:center; gap:.3rem; flex-shrink:0;
-  margin-left: .25rem;
-}
-.ic-btn {
-  width:32px; height:32px;
-  border:none; border-radius:9px;
-  background:var(--bg); color:var(--dark);
-  font-size:1rem; font-weight:900;
-  cursor:pointer; display:flex; align-items:center; justify-content:center;
-  transition:background .13s, transform .1s;
-  -webkit-tap-highlight-color:transparent;
-  flex-shrink:0;
-}
-.ic-btn:hover  { background:#dde6f5; }
-.ic-btn:active { transform:scale(.88); }
-.btn-abandon {
-  padding:.38em .85em;
-  background:var(--red); color:#fff;
-  border:none; border-radius:50px;
-  font-family:var(--font); font-size:.78rem; font-weight:800;
-  cursor:pointer; white-space:nowrap;
-  transition:transform .1s, box-shadow .1s;
-  box-shadow:0 3px 10px rgba(232,34,34,.35);
-  -webkit-tap-highlight-color:transparent;
-  flex-shrink:0;
-}
-.btn-abandon:hover  { box-shadow:0 5px 14px rgba(232,34,34,.45); }
-.btn-abandon:active { transform:scale(.93); }
-
-/* ─── Canvas wrap ──────────────────────── */
-#cwrap {
-  position: relative;
-  flex: 1;
-  overflow: hidden;
-  touch-action: none;  /* CRITICAL: disable browser touch handling */
-  cursor: crosshair;
-}
-#gc {
-  position: absolute;
-  top: 0; left: 0;
-  display: block;
-}
-
-/* ─── Turn banner ──────────────────────── */
-#tbanner {
-  position: fixed;
-  bottom: .9rem; left: 50%;
-  transform: translateX(-50%);
-  background: rgba(255,255,255,.96);
-  border-radius:50px;
-  padding:.4rem 1.2rem;
-  font-size:.82rem; font-weight:800;
-  box-shadow: var(--shadow);
-  border: 2px solid transparent;
-  transition: border-color .3s, color .3s;
-  pointer-events:none; white-space:nowrap;
-  z-index:40;
-}
-
-/* ─── Toast ────────────────────────────── */
-#toast {
-  position:fixed;
-  top:calc(var(--hud-h) + 8px);
-  left:50%; transform:translateX(-50%) translateY(-12px);
-  background:var(--dark); color:#fff;
-  padding:.48em 1.3em; border-radius:50px;
-  font-weight:800; font-size:.86rem;
-  z-index:300; opacity:0; pointer-events:none;
-  transition:opacity .22s, transform .22s;
+.active-pill{
+  display:flex; align-items:center; gap:6px;
+  background:#fff; border-radius:20px; padding:4px 11px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+  font-weight:800; font-size:clamp(11px,2vw,14px); flex-shrink:0;
   white-space:nowrap;
 }
-#toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+.active-dot{
+  width:10px; height:10px; border-radius:50%;
+  animation:blink 1s ease-in-out infinite;
+  flex-shrink:0;
+}
+@keyframes blink{ 0%,100%{opacity:1} 50%{opacity:.2} }
 
-/* ════════════════════════════════════════════
-   GAME OVER
-════════════════════════════════════════════ */
-#s-gameover {
-  background:rgba(18,30,62,.75);
-  backdrop-filter:blur(10px); z-index:400;
+.timers{ display:flex; flex-direction:column; align-items:center; gap:3px; flex-shrink:0; }
+.global-timer{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(16px,3.5vw,22px); color:#1a2a4a;
+  background:#fff; padding:3px 12px; border-radius:20px;
+  box-shadow:0 2px 8px rgba(0,0,0,.08); min-width:68px; text-align:center;
 }
-.go-card {
-  background:var(--white); border-radius:24px;
-  padding:2.2rem 1.8rem; width:min(92vw,380px);
-  text-align:center;
-  box-shadow:0 10px 48px rgba(18,30,62,.2);
-  animation: slideup .4s cubic-bezier(.34,1.56,.64,1);
-}
-.go-trophy { font-size:3.6rem; }
-.go-title  { font-size:1.9rem; font-weight:900; color:var(--dark); margin:.2rem 0; }
-.go-sub    { color:var(--muted); font-size:.9rem; margin-bottom:1.4rem; }
-.go-scores { display:flex; justify-content:center; gap:2.5rem; margin-bottom:1.8rem; }
-.go-score  { display:flex;flex-direction:column;align-items:center;gap:.2rem; }
-.go-score .gnum { font-size:3rem;font-weight:900;line-height:1; }
-.go-score .glbl { font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1px; }
-.go-score.red  .gnum { color:var(--red); }
-.go-score.blue .gnum { color:var(--blue); }
-.go-btns { display:flex;gap:.7rem;justify-content:center;flex-wrap:wrap; }
+.turn-wrap{ display:flex; align-items:center; gap:4px; font-size:11px; font-weight:700; color:#6680aa; }
+.turn-bar-bg{ width:60px; height:6px; background:#e0e8ff; border-radius:3px; overflow:hidden; }
+#turn-bar{ height:100%; border-radius:3px; background:#4dde80; transition:width 1s linear,background .4s; }
+#turn-num{ font-family:'Fredoka One',cursive; font-size:14px; }
 
-/* ════════════════════════════════════════════
-   RESPONSIVE — small phones
-════════════════════════════════════════════ */
-@media (max-width: 480px) {
-  :root { --hud-h: 50px; }
-  .hud-logo   { font-size: 1.25rem; }
-  .hud-active { max-width: 88px; padding: .2rem .45rem; font-size: .7rem; }
-  .hud-active .ajoue { display: none; }
-  .hud-gtime  { font-size: 1rem; }
-  .hud-bar-wrap { width: 42px; }
-  .hud-tour-row { font-size: .62rem; }
-  .hud-score-row .sname { display: none; }
-  .hud-score-row .snum  { font-size: .9rem; }
-  .hud-score-row .av    { font-size: .8rem; }
-  .ic-btn { width: 28px; height: 28px; font-size: .88rem; border-radius: 7px; }
-  .btn-abandon { padding: .32em .65em; font-size: .7rem; }
-  #tbanner { font-size: .74rem; padding: .3rem .9rem; }
+.scores{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; flex-shrink:0; }
+.score-label{ font-family:'Fredoka One',cursive; font-size:11px; color:var(--blue); }
+.score-row{ display:flex; align-items:center; gap:5px; }
+.score-row .av{ font-size:clamp(13px,2.5vw,17px); }
+.score-row .nm{ font-size:clamp(10px,1.8vw,13px); font-weight:700; max-width:60px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.score-row .pt{ font-family:'Fredoka One',cursive; font-size:clamp(14px,2.5vw,18px); min-width:22px; text-align:right; }
+.score-row.r .nm,.score-row.r .pt{ color:var(--red);  }
+.score-row.b .nm,.score-row.b .pt{ color:var(--blue); }
+
+.zoom-btns{ display:flex; gap:3px; flex-shrink:0; }
+.zbtn{
+  width:30px; height:30px; border-radius:8px; border:none;
+  background:#fff; box-shadow:0 2px 6px rgba(0,0,0,.1);
+  color:#3a4a6a; font-size:16px; font-weight:700; cursor:pointer;
+  display:flex; align-items:center; justify-content:center;
+  transition:background .15s,transform .1s;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
 }
-@media (max-width: 340px) {
-  .hud-active { display: none; }
-  .hud-scores { gap: 1px; }
+.zbtn:hover { background:#e0e8ff; transform:scale(1.1); }
+.zbtn:active{ transform:scale(.95); }
+
+#canvas-wrap{ flex:1; overflow:hidden; position:relative; cursor:crosshair; touch-action:none; }
+#game-canvas{ position:absolute; top:0; left:0; display:block; }
+
+/* hide turn-wrap on small screens */
+@media(max-width:480px){
+  #top-bar{ padding:4px 8px; gap:5px; }
+  .active-pill span:last-child{ display:none; }
+  .turn-wrap{ display:none; }
+  .score-row .nm{ display:none; }
 }
+
+/* ── TOAST ───────────────────────────────── */
+#notif{
+  position:fixed; top:calc(var(--bar-h) + 8px); left:50%;
+  transform:translateX(-50%) translateY(-12px);
+  background:#fff; border-radius:12px; padding:8px 20px;
+  font-weight:800; font-size:clamp(13px,3vw,15px);
+  box-shadow:0 8px 24px rgba(0,0,0,.13);
+  opacity:0; transition:opacity .25s,transform .25s;
+  pointer-events:none; z-index:100;
+  white-space:nowrap; max-width:92vw; overflow:hidden; text-overflow:ellipsis;
+  border-left:4px solid var(--blue);
+}
+#notif.show{ opacity:1; transform:translateX(-50%) translateY(0); }
+
+/* ── END SCREEN ──────────────────────────── */
+.end-card{
+  background:#fff; border-radius:24px;
+  padding:clamp(28px,6vw,48px) clamp(24px,8vw,64px);
+  box-shadow:0 12px 48px rgba(26,59,255,.12);
+  text-align:center; max-width:480px; width:92%;
+}
+.end-title{ font-family:'Fredoka One',cursive; font-size:clamp(32px,8vw,48px); margin-bottom:6px; }
+.end-sub  { color:#6680aa; font-size:15px; font-weight:700; margin-bottom:24px; }
+.end-scores{ display:flex; gap:20px; justify-content:center; margin-bottom:24px; flex-wrap:wrap; }
+.esi{ display:flex; flex-direction:column; align-items:center; gap:6px; padding:16px 22px; border-radius:16px; }
+.esi.re{ background:var(--red-l); }
+.esi.be{ background:var(--blue-l); }
+.esi .eav{ font-size:clamp(26px,6vw,36px); }
+.esi .enm{ font-size:13px; font-weight:800; }
+.esi .ept{ font-family:'Fredoka One',cursive; font-size:clamp(36px,8vw,48px); }
+.esi.re .enm,.esi.re .ept{ color:var(--red);  }
+.esi.be .enm,.esi.be .ept{ color:var(--blue); }
+
+/* ── CONNECTING ──────────────────────────── */
+#screen-connecting{
+  background:var(--bg);
+  gap:14px; z-index:999;
+}
+.spinner{
+  width:46px; height:46px;
+  border:5px solid var(--grid);
+  border-top-color:var(--red);
+  border-radius:50%;
+  animation:spin .6s linear infinite;
+}
+@keyframes spin{ to{transform:rotate(360deg)} }
+#screen-connecting p{
+  font-family:'Fredoka One',cursive;
+  font-size:18px; color:#6680aa;
+}
+
+/* ── MODAL ───────────────────────────────── */
+#modal-how{
+  display:none; position:fixed; inset:0;
+  background:rgba(10,20,60,.55); z-index:200;
+  align-items:center; justify-content:center; padding:16px;
+}
+#modal-how.open{ display:flex; }
+.modal-inner{
+  background:#fff; border-radius:20px;
+  padding:clamp(24px,5vw,36px) clamp(20px,5vw,44px);
+  max-width:470px; width:100%; max-height:90vh; overflow-y:auto;
+  box-shadow:0 20px 60px rgba(0,0,0,.22);
+}
+.modal-inner h2{
+  font-family:'Fredoka One',cursive;
+  font-size:clamp(20px,5vw,26px); color:var(--red); margin-bottom:14px;
+}
+.modal-inner ul{
+  list-style:none; display:flex; flex-direction:column; gap:9px;
+  color:#3a4a6a; font-size:clamp(12px,3vw,14px); font-weight:600; margin-bottom:20px;
+}
+.modal-inner ul li::before{ content:"→ "; color:var(--blue); font-weight:800; }
 </style>
 </head>
 <body>
 
 <!-- CONNECTING -->
-<div id="s-conn" class="screen">
+<div id="screen-connecting" class="screen active">
   <div class="spinner"></div>
   <p>Connexion…</p>
 </div>
 
-<!-- HOME -->
-<div id="s-home" class="screen off">
-  <div class="home-logo">YOYO</div>
-  <div class="home-tagline">Le jeu de carrés stratégique</div>
-  <div class="home-btns">
-    <button class="btn btn-green"  id="b-create">🎮 Lancer une partie</button>
-    <button class="btn btn-violet" id="b-join">🔗 Rejoindre une partie</button>
-    <button class="btn btn-blue"   id="b-ai">🤖 Jouer contre l'IA</button>
+<!-- WELCOME -->
+<div id="screen-welcome" class="screen grid-bg">
+  <span class="help-link" onclick="openModal()">Comment ça marche ?</span>
+  <div class="logo">YOYO</div>
+  <div class="subtitle">Le jeu des carrés stratégiques</div>
+  <div class="btn-row">
+    <button class="btn btn-green"  onclick="doCreate()">🎮 Lancer une partie</button>
+    <button class="btn btn-purple" onclick="doShowJoin()">🔗 Rejoindre une partie</button>
   </div>
-  <div class="howto-link" id="b-howto">Comment ça marche ?</div>
+  <div style="margin-top:14px;">
+    <button class="btn btn-blue" onclick="doAI()">🤖 Jouer contre l'IA</button>
+  </div>
 </div>
 
-<!-- CREATE MODAL -->
-<div id="m-create" class="overlay off">
+<!-- CREATE (waiting for opponent) -->
+<div id="screen-create" class="screen grid-bg">
   <div class="card">
-    <h2>🎮 Nouvelle Partie</h2>
-    <p>Partage ce code avec ton adversaire</p>
-    <div class="big-code" id="m-code">——</div>
-    <div class="dots">En attente <span>.</span><span>.</span><span>.</span></div>
-    <div class="card-row">
-      <button class="btn btn-ghost" id="b-cancel-create">Annuler</button>
+    <h2>🎮 Partie créée !</h2>
+    <p>Partagez ce code avec votre adversaire :</p>
+    <div class="game-code" id="display-code">----</div>
+    <p class="pulse wait-dots">En attente <span>.</span><span>.</span><span>.</span></p>
+    <div style="margin-top:18px;">
+      <button class="btn btn-gray" onclick="showScreen('screen-welcome')">Annuler</button>
     </div>
   </div>
 </div>
 
-<!-- JOIN MODAL -->
-<div id="m-join" class="overlay off">
+<!-- JOIN -->
+<div id="screen-join" class="screen grid-bg">
   <div class="card">
-    <h2>🔗 Rejoindre</h2>
-    <p>Entre le code à 4 chiffres</p>
-    <input type="tel" class="code-in" id="join-in" maxlength="4" placeholder="0000"
-           inputmode="numeric" pattern="[0-9]*" autocomplete="off">
-    <div class="err" id="join-err"></div>
-    <div class="card-row">
-      <button class="btn btn-ghost"  id="b-cancel-join">Annuler</button>
-      <button class="btn btn-violet" id="b-do-join">Rejoindre</button>
-    </div>
-  </div>
-</div>
-
-<!-- HOWTO MODAL -->
-<div id="m-howto" class="overlay off">
-  <div class="card">
-    <h2>📖 Comment jouer ?</h2>
-    <div class="howto-body">
-      <h3>🎯 Objectif</h3>
-      <p>Former un maximum de <strong>carrés parfaits</strong> en plaçant vos points sur les intersections de la grille.</p>
-      <h3>📌 Tour de jeu</h3>
-      <ul>
-        <li>Les joueurs jouent chacun à leur tour</li>
-        <li>Clique / tape sur une intersection pour poser un point</li>
-        <li>Tu as <strong>8 secondes</strong> par tour — sinon le tour passe</li>
-      </ul>
-      <h3>⬜ Carré</h3>
-      <ul>
-        <li>4 points de ta couleur forment un carré → +1 point</li>
-        <li>Carrés de taille 1 cellule, alignés sur la grille</li>
-        <li>Un point peut appartenir à plusieurs carrés</li>
-      </ul>
-      <h3>🗺️ Navigation</h3>
-      <ul>
-        <li>📱 <strong>Mobile</strong> : 2 doigts = zoom + déplacement · 1 doigt glissé = déplacement · tap court = poser un point</li>
-        <li>💻 <strong>PC</strong> : molette = zoom · clic droit maintenu = déplacement · clic gauche = poser un point</li>
-        <li>Boutons <strong>＋ / －</strong> et <strong>⌂</strong> dans la barre du haut</li>
-      </ul>
-      <h3>⏱️ Fin</h3>
-      <p>10 minutes de jeu. Le plus de carrés gagne !</p>
-    </div>
-    <div class="card-row">
-      <button class="btn btn-blue" id="b-close-howto">Compris !</button>
+    <h2>🔗 Rejoindre une partie</h2>
+    <p>Entrez le code à 4 chiffres :</p>
+    <input type="tel" id="join-input" class="code-input"
+           inputmode="numeric" maxlength="4" placeholder="0000"
+           oninput="this.value=this.value.replace(/\D/g,'')">
+    <div class="err-msg" id="join-error"></div>
+    <div style="margin-top:14px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+      <button class="btn btn-blue"  onclick="doJoin()">Rejoindre</button>
+      <button class="btn btn-gray"  onclick="showScreen('screen-welcome')">Retour</button>
     </div>
   </div>
 </div>
 
 <!-- GAME -->
-<div id="s-game" class="screen off">
+<div id="screen-game" class="screen">
+  <div id="top-bar">
+    <div class="top-logo">YOYO</div>
 
-  <!-- HUD -->
-  <div id="hud">
-    <div class="hud-logo">YOYO</div>
-
-    <div class="hud-active" id="hud-active">
-      <div class="dot"></div>
-      <span class="aname" id="ha-name">—</span>
-      <span class="ajoue">joue</span>
+    <div class="active-pill">
+      <div class="active-dot" id="active-dot" style="background:var(--red)"></div>
+      <span id="active-name">Joueur</span>
+      <span style="font-size:11px;color:#6680aa;font-weight:600;">joue</span>
     </div>
 
-    <div class="hud-flex"></div>
-
-    <div class="hud-timers">
-      <div class="hud-gtime" id="hud-gt">10:00</div>
-      <div class="hud-tour-row">
-        <span>Tour :</span>
-        <div class="hud-bar-wrap">
-          <div class="hud-bar blue" id="hud-bar" style="width:100%"></div>
-        </div>
-        <span id="hud-ts">8 s</span>
+    <div class="timers">
+      <div class="global-timer" id="global-timer">10:00</div>
+      <div class="turn-wrap">
+        <span>Tour&nbsp;:</span>
+        <div class="turn-bar-bg"><div id="turn-bar" style="width:100%"></div></div>
+        <span id="turn-num">8</span>s
       </div>
     </div>
 
-    <div class="hud-flex2"></div>
-
-    <div class="hud-scores">
-      <div class="hud-score-row red">
-        <span class="av"    id="av-red">👾</span>
-        <span class="sname" id="sn-red">Rouge</span>
-        <span class="snum"  id="sc-red">00</span>
-      </div>
-      <div class="hud-score-row blue">
-        <span class="av"    id="av-blue">🤖</span>
-        <span class="sname" id="sn-blue">Bleu</span>
-        <span class="snum"  id="sc-blue">00</span>
-      </div>
+    <div class="scores">
+      <div class="score-label">Score !!!</div>
+      <div class="score-row r"><span class="av" id="av-r">🤖</span><span class="nm" id="nm-r">Rouge</span><span class="pt" id="pt-r">00</span></div>
+      <div class="score-row b"><span class="av" id="av-b">👾</span><span class="nm" id="nm-b">Bleu</span> <span class="pt" id="pt-b">00</span></div>
     </div>
 
-    <div class="hud-ctrl">
-      <button class="ic-btn" id="b-home-view" title="Recentrer">⌂</button>
-      <button class="ic-btn" id="b-zin"       title="Zoom +">＋</button>
-      <button class="ic-btn" id="b-zout"      title="Zoom −">－</button>
-      <button class="btn-abandon" id="b-abandon">Abandonner</button>
+    <div class="zoom-btns">
+      <button class="zbtn" onclick="zoomBtn(1.25)"   title="Zoom +">+</button>
+      <button class="zbtn" onclick="zoomBtn(1/1.25)" title="Zoom −">−</button>
+      <button class="zbtn" onclick="resetView()"     title="Vue par défaut" style="font-size:13px;">⌖</button>
     </div>
+
+    <button class="btn btn-red btn-sm" onclick="abandonGame()">Abandonner</button>
   </div>
 
-  <!-- Canvas -->
-  <div id="cwrap">
-    <canvas id="gc"></canvas>
-  </div>
-
-  <div id="tbanner">En attente…</div>
+  <div id="canvas-wrap"><canvas id="game-canvas"></canvas></div>
 </div>
 
-<!-- GAME OVER -->
-<div id="s-gameover" class="screen off">
-  <div class="go-card">
-    <div class="go-trophy" id="go-trophy">🏆</div>
-    <div class="go-title"  id="go-title">Fin !</div>
-    <div class="go-sub"    id="go-sub">Résultats</div>
-    <div class="go-scores">
-      <div class="go-score red">
-        <div class="gnum" id="go-rs">0</div>
-        <div class="glbl" id="go-rn">Rouge</div>
-      </div>
-      <div class="go-score blue">
-        <div class="gnum" id="go-bs">0</div>
-        <div class="glbl" id="go-bn">Bleu</div>
-      </div>
+<!-- END -->
+<div id="screen-end" class="screen grid-bg">
+  <div class="end-card">
+    <div class="end-title" id="end-title">🏆 Fin !</div>
+    <div class="end-sub"   id="end-sub">Résultats</div>
+    <div class="end-scores">
+      <div class="esi re"><div class="eav" id="e-av-r">🤖</div><div class="enm" id="e-nm-r">Rouge</div><div class="ept" id="e-pt-r">0</div></div>
+      <div class="esi be"><div class="eav" id="e-av-b">👾</div><div class="enm" id="e-nm-b">Bleu</div> <div class="ept" id="e-pt-b">0</div></div>
     </div>
-    <div class="go-btns">
-      <button class="btn btn-blue"  id="b-replay">🔄 Rejouer</button>
-      <button class="btn btn-ghost" id="b-gohome">🏠 Accueil</button>
+    <div class="btn-row" style="justify-content:center;">
+      <button class="btn btn-green"  onclick="showScreen('screen-welcome')">Rejouer</button>
+      <button class="btn btn-gray"   onclick="showScreen('screen-welcome')">Accueil</button>
     </div>
   </div>
 </div>
 
-<!-- TOAST -->
-<div id="toast"></div>
+<!-- HOW TO MODAL -->
+<div id="modal-how">
+  <div class="modal-inner">
+    <h2>Comment jouer à YOYO ?</h2>
+    <ul>
+      <li>Placez des points sur les intersections de la grille à tour de rôle</li>
+      <li>Formez des carrés parfaits avec 4 points de votre couleur</li>
+      <li>Les carrés doivent être alignés avec la grille (pas en diagonale)</li>
+      <li>Chaque carré validé rapporte 1 point — un point peut former plusieurs carrés</li>
+      <li>Vous avez <strong>8 secondes</strong> par tour — le tour passe si vous dépassez</li>
+      <li>La partie dure <strong>10 minutes</strong> — le plus de points gagne !</li>
+      <li>📱 <strong>Mobile :</strong> glisser 1 doigt = déplacer · pincer = zoomer · appui court = placer un point</li>
+      <li>🖥️ <strong>PC :</strong> molette = zoomer · clic droit + glisser = déplacer · clic gauche = placer un point</li>
+    </ul>
+    <button class="btn btn-blue" onclick="closeModal()" style="width:100%">C'est compris !</button>
+  </div>
+</div>
+
+<div id="notif"></div>
 
 <script>
-'use strict';
+"use strict";
 
-/* ═══════════════════════════════════════════════
-   CONSTANTS
-═══════════════════════════════════════════════ */
-const CELL    = 60;
-const GSIZ    = 100;
-const GRID_PX = CELL * (GSIZ - 1);
+// ════════════════════════════════════════
+// CONSTANTS
+// ════════════════════════════════════════
+const CELL      = 40;
+const GRID      = 50;   // 50×50 intersections (visible area; server uses 100×100)
+const TURN_SEC  = 8;
+const GAME_SEC  = 600;
+const MIN_ZOOM  = 0.22;
+const MAX_ZOOM  = 5.0;
+const TAP_SLOP  = 10;   // px — max movement to be a tap
 
-/* ═══════════════════════════════════════════════
-   WEBSOCKET
-═══════════════════════════════════════════════ */
-const WS_URL = `${location.protocol==='https:'?'wss':'ws'}://${location.host}`;
-let ws, wsOk=false, pending=[];
+const AVATARS = ['🤖','👾','🐸','🦊','🐙','🦄','🐺','🦁','🐯','🦋','🐉','🦅','🎭','⚡','🔥'];
 
-function wsConnect() {
+// ════════════════════════════════════════
+// WEBSOCKET
+// ════════════════════════════════════════
+const WS_URL  = `${location.protocol==='https:'?'wss':'ws'}://${location.host}`;
+let   ws, wsOk=false, wsPending=[];
+
+function wsConnect(){
   ws = new WebSocket(WS_URL);
-  ws.onopen    = () => { wsOk=true; show('s-home'); hide('s-conn'); pending.forEach(wsSend); pending=[]; };
-  ws.onmessage = e => onMsg(JSON.parse(e.data));
+  ws.onopen    = () => {
+    wsOk = true;
+    wsPending.forEach(wsSend); wsPending=[];
+    showScreen('screen-welcome');
+  };
+  ws.onmessage = e => onWsMsg(JSON.parse(e.data));
   ws.onclose   = () => { wsOk=false; setTimeout(wsConnect,2000); };
   ws.onerror   = () => {};
 }
-function wsSend(o) {
+function wsSend(o){
   if(wsOk && ws.readyState===1) ws.send(JSON.stringify(o));
-  else pending.push(o);
+  else wsPending.push(o);
 }
-setInterval(() => { if(wsOk) wsSend({type:'PING'}); }, 20000);
+setInterval(()=>{ if(wsOk) wsSend({type:'PING'}); },20000);
 
-/* ═══════════════════════════════════════════════
-   DOM HELPERS
-═══════════════════════════════════════════════ */
-const $    = id => document.getElementById(id);
-const show = id => $(id) && $(id).classList.remove('off');
-const hide = id => $(id) && $(id).classList.add('off');
+// ════════════════════════════════════════
+// GAME STATE
+// ════════════════════════════════════════
+let myColor=null, gameMode=null;
+// players info synced from server
+let serverPlayers = {}; // color→{name,avatar}
 
-let _tt;
-function toast(msg, bg='#18243f') {
-  const el=$('toast'); el.textContent=msg; el.style.background=bg;
-  el.classList.add('show'); clearTimeout(_tt);
-  _tt=setTimeout(()=>el.classList.remove('show'),2800);
-}
-
-/* ═══════════════════════════════════════════════
-   GAME STATE
-═══════════════════════════════════════════════ */
-let myColor=null, myName=null, myAvatar=null, gameMode=null;
-let players = {};
-let gstate  = {
-  points:[], squares:[], scores:{red:0,blue:0},
-  turn:null, turnTimeLeft:8, timeLeft:600, gameOver:false
+// Canvas render state (mirrors server authoritative state)
+let R = {
+  points: {},       // "x,y" → color
+  squares: [],      // {x,y,color,num}
+  scores: {red:0,blue:0},
+  turn: 'red',
+  timeTurn: TURN_SEC,
+  timeGame: GAME_SEC,
+  running: false,
+  anims: [],
+  hover: null,
+  camX:0, camY:0, zoom:1,
 };
 
-/* ═══════════════════════════════════════════════
-   CANVAS & VIEWPORT
-═══════════════════════════════════════════════ */
-const canvas = $('gc');
-const ctx    = canvas.getContext('2d');
-const cwrap  = $('cwrap');
+let canvas, ctx, animId=null;
+const $ = id => document.getElementById(id);
 
-/* Viewport: single source of truth */
-let vp = { x:0, y:0, zoom:1, minZ:.2, maxZ:10 };
-
-/* Animation queues */
-let animSq  = [];  // {sq, t0}
-let animDot = [];  // {x,y,color,t0}
-let hoverTarget = null;
-const DUR_SQ  = 380;
-const DUR_DOT = 220;
-
-/* ─ Resize ─────────────────────────────────── */
-function resizeCanvas() {
-  const r   = cwrap.getBoundingClientRect();
-  const W   = r.width,  H = r.height;
-  const dpr = window.devicePixelRatio || 1;
-  canvas.width  = Math.round(W * dpr);
-  canvas.height = Math.round(H * dpr);
-  canvas.style.width  = W + 'px';
-  canvas.style.height = H + 'px';
-  // Reset transform before rescaling
-  ctx.setTransform(1,0,0,1,0,0);
-  ctx.scale(dpr, dpr);
-  schedDraw();
+// ════════════════════════════════════════
+// SCREEN HELPERS
+// ════════════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
 }
-window.addEventListener('resize', () => { resizeCanvas(); });
+function openModal() { $('modal-how').classList.add('open');   }
+function closeModal(){ $('modal-how').classList.remove('open');}
+$('modal-how').addEventListener('click',e=>{ if(e.target===e.currentTarget) closeModal(); });
 
-/* ─ Viewport helpers ────────────────────────── */
-function clampVp() {
-  const r  = cwrap.getBoundingClientRect();
-  const W  = r.width, H = r.height;
-  const gw = GRID_PX * vp.zoom;
-  const gh = GRID_PX * vp.zoom;
-  const mg = 60;
-  vp.x = Math.min(vp.x, W - mg);
-  vp.x = Math.max(vp.x, -gw + mg);
-  vp.y = Math.min(vp.y, H - mg);
-  vp.y = Math.max(vp.y, -gh + mg);
+// ════════════════════════════════════════
+// HOME ACTIONS
+// ════════════════════════════════════════
+function doCreate(){
+  wsSend({type:'CREATE_ROOM'});
+}
+function doShowJoin(){
+  $('join-input').value=''; $('join-error').textContent='';
+  showScreen('screen-join');
+  setTimeout(()=>$('join-input').focus(),250);
+}
+function doJoin(){
+  const v=$('join-input').value.trim();
+  if(!/^\d{4}$/.test(v)){ $('join-error').textContent='Code invalide (4 chiffres requis).'; return; }
+  wsSend({type:'JOIN_ROOM',code:v});
+}
+function doAI(){
+  gameMode='ai';
+  wsSend({type:'START_AI_GAME'});
+}
+function abandonGame(){
+  if(!R.running) return;
+  if(confirm('Abandonner la partie en cours ?')) wsSend({type:'ABANDON'});
 }
 
-function resetView() {
-  const r   = cwrap.getBoundingClientRect();
-  const W   = r.width, H = r.height;
-  const pad = 48;
-  const z   = Math.min((W-pad*2)/GRID_PX, (H-pad*2)/GRID_PX, 1.2);
-  vp.zoom   = Math.max(vp.minZ, z);
-  vp.x      = (W - GRID_PX*vp.zoom)/2;
-  vp.y      = (H - GRID_PX*vp.zoom)/2;
-  schedDraw();
-}
-
-function zoomAt(cx, cy, factor) {
-  const nz = Math.min(vp.maxZ, Math.max(vp.minZ, vp.zoom*factor));
-  if(nz === vp.zoom) return;
-  const s  = nz / vp.zoom;
-  vp.x     = cx - (cx - vp.x)*s;
-  vp.y     = cy - (cy - vp.y)*s;
-  vp.zoom  = nz;
-  clampVp();
-  schedDraw();
-}
-
-function screenToGrid(sx, sy) {
-  const r  = cwrap.getBoundingClientRect();
-  const gx = (sx - r.left  - vp.x) / (CELL * vp.zoom);
-  const gy = (sy - r.top   - vp.y) / (CELL * vp.zoom);
-  return { x: Math.round(gx), y: Math.round(gy) };
-}
-
-function g2s(gx, gy) {
-  return { sx: vp.x + gx*CELL*vp.zoom,
-           sy: vp.y + gy*CELL*vp.zoom };
-}
-
-function getGridHit(sx, sy) {
-  const r  = cwrap.getBoundingClientRect();
-  const gx = (sx - r.left - vp.x) / (CELL * vp.zoom);
-  const gy = (sy - r.top  - vp.y) / (CELL * vp.zoom);
-  const x  = Math.round(gx);
-  const y  = Math.round(gy);
-  if(x < 0 || y < 0 || x >= GSIZ || y >= GSIZ) return null;
-  const pos = g2s(x, y);
-  const dx  = pos.sx - (sx - r.left);
-  const dy  = pos.sy - (sy - r.top);
-  const dist = Math.hypot(dx, dy);
-  const threshold = Math.max(14, 18 / Math.max(vp.zoom, 0.5));
-  return dist <= threshold ? {x, y, sx: pos.sx, sy: pos.sy, dist} : null;
-}
-
-function updateHoverTarget(sx, sy) {
-  const hit = getGridHit(sx, sy);
-  if(!hit) { hoverTarget = null; return; }
-  if(gstate.points.find(p => p.x===hit.x && p.y===hit.y)) { hoverTarget = null; return; }
-  hoverTarget = hit;
-}
-
-/* ─ Draw ────────────────────────────────────── */
-let rafPending = false;
-function schedDraw() {
-  if(rafPending) return;
-  rafPending = true;
-  requestAnimationFrame(doDraw);
-}
-function doDraw() {
-  rafPending = false;
-  const r   = cwrap.getBoundingClientRect();
-  const W   = r.width, H = r.height;
-  ctx.clearRect(0, 0, W, H);
-  const cp  = CELL * vp.zoom;
-  const now = performance.now();
-  let   needMore = false;
-
-  /* ── Grid ───────────────────────────────── */
-  for(let i = 0; i < GSIZ; i++) {
-    const major = (i % 5 === 0);
-    ctx.strokeStyle = major ? '#b4c4de' : '#d4dfef';
-    ctx.lineWidth   = major ? 0.9 : 0.5;
-
-    const sx = vp.x + i * cp;
-    if(sx >= -cp && sx <= W + cp) {
-      const y0 = Math.max(0, vp.y);
-      const y1 = Math.min(H, vp.y + (GSIZ-1)*cp);
-      ctx.beginPath(); ctx.moveTo(sx, y0); ctx.lineTo(sx, y1); ctx.stroke();
-    }
-
-    const sy = vp.y + i * cp;
-    if(sy >= -cp && sy <= H + cp) {
-      const x0 = Math.max(0, vp.x);
-      const x1 = Math.min(W, vp.x + (GSIZ-1)*cp);
-      ctx.beginPath(); ctx.moveTo(x0, sy); ctx.lineTo(x1, sy); ctx.stroke();
-    }
-  }
-
-  /* Grid border */
-  ctx.save();
-  ctx.strokeStyle = '#8fa6cc';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(vp.x, vp.y, GRID_PX, GRID_PX);
-  ctx.restore();
-
-  /* ── Hover preview ring ───────────────────── */
-  if(hoverTarget) {
-    const pulse = 0.5 + 0.5 * Math.sin(now / 180);
-    const radius = Math.max(6, Math.min(12, 8 * vp.zoom)) * (0.95 + 0.12 * pulse);
-    ctx.save();
-    ctx.strokeStyle = 'rgba(255,255,255,0.95)';
-    ctx.lineWidth = Math.max(2, 2.6 * Math.min(vp.zoom, 2));
-    ctx.shadowColor = 'rgba(255,255,255,0.75)';
-    ctx.shadowBlur  = 10;
-    ctx.beginPath(); ctx.arc(hoverTarget.sx, hoverTarget.sy, radius, 0, Math.PI*2); ctx.stroke();
-    ctx.restore();
-
-    ctx.save();
-    ctx.strokeStyle = 'rgba(34,197,94,0.9)';
-    ctx.lineWidth = 1.9;
-    ctx.beginPath(); ctx.arc(hoverTarget.sx, hoverTarget.sy, radius + 5, 0, Math.PI*2); ctx.stroke();
-    ctx.restore();
-    needMore = true;
-  }
-
-  /* ── Intersection hint dots (zoomed in) ─── */
-  if(vp.zoom > 1.6) {
-    ctx.fillStyle = '#b8cbe0';
-    for(let gx=0; gx<GSIZ; gx++) {
-      for(let gy=0; gy<GSIZ; gy++) {
-        const {sx,sy} = g2s(gx,gy);
-        if(sx<-6||sx>W+6||sy<-6||sy>H+6) continue;
-        if(gstate.points.find(p=>p.x===gx&&p.y===gy)) continue;
-        ctx.beginPath(); ctx.arc(sx,sy,1.4,0,Math.PI*2); ctx.fill();
-      }
-    }
-  }
-
-  /* ── Squares ────────────────────────────── */
-  for(const sq of gstate.squares) {
-    const anim = animSq.find(a=>a.sq===sq);
-    let prog = 1;
-    if(anim) {
-      const t = Math.min(1, (now - anim.t0) / DUR_SQ);
-      // ease-out-back
-      const c1=1.70158, c3=c1+1;
-      prog = 1 + c3*Math.pow(t-1,3) + c1*Math.pow(t-1,2);
-      prog = Math.max(0, Math.min(1.08, prog));
-      if(now - anim.t0 > DUR_SQ + 120) animSq = animSq.filter(a=>a!==anim);
-      needMore = true;
-    }
-
-    const {sx:x0,sy:y0} = g2s(sq.x, sq.y);
-    const sqpx = sq.size * cp * prog;
-    const cx   = x0 + sq.size*cp/2;
-    const cy   = y0 + sq.size*cp/2;
-    const dx   = cx - sqpx/2;
-    const dy   = cy - sqpx/2;
-    const col  = sq.color==='red' ? '#e82222' : '#1e5fe8';
-    const colA = sq.color==='red' ? 'rgba(232,34,34,.11)' : 'rgba(30,95,232,.11)';
-
-    ctx.save();
-    ctx.fillStyle   = colA;
-    ctx.strokeStyle = col;
-    ctx.lineWidth   = Math.max(1.8, 2.6*vp.zoom);
-    const rr = Math.min(6, sqpx * 0.08);
-    ctx.beginPath();
-    if(ctx.roundRect) ctx.roundRect(dx,dy,sqpx,sqpx,rr);
-    else ctx.rect(dx,dy,sqpx,sqpx);
-    ctx.fill();
-    ctx.stroke();
-
-    /* Number */
-    if(prog > .5 && sqpx > 12) {
-      const fs = Math.max(10, Math.min(sqpx * .38, 30));
-      ctx.fillStyle    = col;
-      ctx.font         = `900 ${fs}px Nunito, sans-serif`;
-      ctx.textAlign    = 'center';
-      ctx.textBaseline = 'middle';
-      ctx.globalAlpha  = Math.min(1, (prog - .5) / .5);
-      ctx.fillText(String(sq.number), cx, cy + 1);
-    }
-    ctx.restore();
-  }
-
-  /* ── Points ─────────────────────────────── */
-  const baseR = Math.max(3.5, Math.min(9.5, 6.5 * vp.zoom));
-  for(const pt of gstate.points) {
-    const anim = animDot.find(a=>a.x===pt.x&&a.y===pt.y);
-    let sc = 1;
-    if(anim) {
-      const t = Math.min(1, (now - anim.t0) / DUR_DOT);
-      /* pop: grow then settle */
-      sc = t < .45 ? 1 + 1.4*(t/.45) : 2.4 - 1.4*((t-.45)/.55);
-      if(t >= 1) animDot = animDot.filter(a=>a!==anim);
-      needMore = true;
-    }
-
-    const {sx,sy} = g2s(pt.x, pt.y);
-    if(sx<-20||sx>W+20||sy<-20||sy>H+20) continue;
-
-    const col  = pt.color==='red' ? '#e82222' : '#1e5fe8';
-    const glow = pt.color==='red' ? 'rgba(232,34,34,.45)' : 'rgba(30,95,232,.45)';
-
-    ctx.save();
-    ctx.shadowBlur  = 8 * Math.min(vp.zoom, 2);
-    ctx.shadowColor = glow;
-    ctx.fillStyle   = col;
-    ctx.beginPath();
-    ctx.arc(sx, sy, baseR * sc, 0, Math.PI*2);
-    ctx.fill();
-    ctx.restore();
-  }
-
-  if(needMore) schedDraw();
-}
-
-/* ═══════════════════════════════════════════════
-   POINTER / TOUCH INPUT
-   ─────────────────────────────────────────────
-   Core contract:
-   • touch-action:none on #cwrap → browser never
-     intercepts scroll/zoom
-   • pointerdown  → start tracking
-   • pointermove  → pan (1 ptr) or pinch (2 ptr)
-   • pointerup    → tap if displacement < TAP_PX
-   • Only place point on tap with 1 pointer that
-     never moved more than TAP_PX pixels.
-═══════════════════════════════════════════════ */
-const TAP_PX  = 10;   // max total movement for a tap
-let   ptrs    = new Map();  // id→{x,y,ox,oy}
-let   panning = false;
-
-/* For single-pointer pan: remember start vp */
-let   panVpX=0, panVpY=0, panSx=0, panSy=0;
-
-/* For pinch: snapshot at moment second finger lands */
-let   pinchActive = false;
-let   pinchD0=0, pinchCx0=0, pinchCy0=0;
-let   pinchVpX0=0, pinchVpY0=0, pinchZ0=0;
-
-canvas.addEventListener('pointerdown',  onPD, {passive:false});
-canvas.addEventListener('pointermove',  onPM, {passive:false});
-canvas.addEventListener('pointerup',    onPU, {passive:false});
-canvas.addEventListener('pointercancel',onPC, {passive:false});
-
-function onPD(e) {
-  e.preventDefault();
-  canvas.setPointerCapture(e.pointerId);
-  ptrs.set(e.pointerId, {x:e.clientX, y:e.clientY, ox:e.clientX, oy:e.clientY});
-
-  if(ptrs.size === 1) {
-    panning   = false;
-    panVpX    = vp.x;  panVpY = vp.y;
-    panSx     = e.clientX; panSy = e.clientY;
-    pinchActive = false;
-  }
-
-  if(ptrs.size === 2) {
-    // Second finger landed → start pinch, mark panning so no tap fires
-    panning     = true;
-    pinchActive = true;
-    const arr   = [...ptrs.values()];
-    pinchD0  = Math.hypot(arr[1].x-arr[0].x, arr[1].y-arr[0].y);
-    pinchCx0 = (arr[0].x+arr[1].x)/2;
-    pinchCy0 = (arr[0].y+arr[1].y)/2;
-    pinchVpX0 = vp.x; pinchVpY0 = vp.y; pinchZ0 = vp.zoom;
-  }
-}
-
-function onPM(e) {
-  e.preventDefault();
-  if(!ptrs.has(e.pointerId)) return;
-  ptrs.set(e.pointerId, {...ptrs.get(e.pointerId), x:e.clientX, y:e.clientY});
-
-  if(ptrs.size === 1 && !pinchActive) {
-    const dx = e.clientX - panSx;
-    const dy = e.clientY - panSy;
-    if(!panning && (Math.abs(dx) > TAP_PX || Math.abs(dy) > TAP_PX)) panning = true;
-    if(panning) {
-      vp.x = panVpX + dx;
-      vp.y = panVpY + dy;
-      clampVp();
-      schedDraw();
-    }
-    if(!panning) updateHoverTarget(e.clientX, e.clientY);
-
-  } else if(ptrs.size >= 2 && pinchActive) {
-    const arr  = [...ptrs.values()];
-    const newD = Math.hypot(arr[1].x-arr[0].x, arr[1].y-arr[0].y);
-    const ncx  = (arr[0].x+arr[1].x)/2;
-    const ncy  = (arr[0].y+arr[1].y)/2;
-    const r    = cwrap.getBoundingClientRect();
-
-    if(pinchD0 > 0) {
-      const factor = newD / pinchD0;
-      const nz     = Math.min(vp.maxZ, Math.max(vp.minZ, pinchZ0 * factor));
-      const s      = nz / pinchZ0;
-      const lx     = pinchCx0 - r.left;
-      const ly     = pinchCy0 - r.top;
-      vp.zoom = nz;
-      vp.x    = (pinchVpX0 - lx)*s + lx + (ncx - pinchCx0);
-      vp.y    = (pinchVpY0 - ly)*s + ly + (ncy - pinchCy0);
-      clampVp();
-      schedDraw();
-    }
-  }
-}
-
-function onPU(e) {
-  e.preventDefault();
-  const ptr = ptrs.get(e.pointerId);
-  ptrs.delete(e.pointerId);
-
-  /* Tap: single pointer, didn't pan */
-  if(!panning && ptr && ptrs.size === 0) {
-    const dist = Math.hypot(ptr.x - ptr.ox, ptr.y - ptr.oy);
-    if(dist < TAP_PX) placePoint(ptr.x, ptr.y);
-  }
-
-  /* Clean up pinch when second finger lifts */
-  if(ptrs.size < 2) {
-    pinchActive = false;
-    /* Reset single-pointer anchor for smooth continued pan */
-    if(ptrs.size === 1) {
-      const rem = [...ptrs.values()][0];
-      panVpX = vp.x; panVpY = vp.y;
-      panSx  = rem.x; panSy  = rem.y;
-      panning = false; /* re-check movement */
-    }
-  }
-  if(ptrs.size === 0) { panning=false; pinchActive=false; }
-}
-
-function onPC(e) {
-  ptrs.delete(e.pointerId);
-  if(ptrs.size === 0) { panning=false; pinchActive=false; }
-}
-
-/* Mouse wheel (PC zoom) */
-cwrap.addEventListener('wheel', e => {
-  e.preventDefault();
-  const r = cwrap.getBoundingClientRect();
-  zoomAt(e.clientX - r.left, e.clientY - r.top, e.deltaY < 0 ? 1.12 : 1/1.12);
-}, {passive:false});
-
-/* Right / middle click drag (PC pan) */
-let rmb=false, rmbLast=null;
-cwrap.addEventListener('mousedown', e => {
-  if(e.button===1||e.button===2){ rmb=true; rmbLast={x:e.clientX,y:e.clientY}; e.preventDefault(); }
-});
-window.addEventListener('mousemove', e => {
-  if(!rmb||!rmbLast) return;
-  vp.x += e.clientX-rmbLast.x;
-  vp.y += e.clientY-rmbLast.y;
-  clampVp(); schedDraw();
-  rmbLast={x:e.clientX,y:e.clientY};
-});
-window.addEventListener('mouseup', e => { if(e.button===1||e.button===2) rmb=false; });
-cwrap.addEventListener('contextmenu', e => e.preventDefault());
-cwrap.addEventListener('pointermove', e => { if(ptrs.size === 0) updateHoverTarget(e.clientX, e.clientY); });
-cwrap.addEventListener('pointerleave', () => { hoverTarget = null; schedDraw(); });
-
-/* ═══════════════════════════════════════════════
-   PLACE POINT
-═══════════════════════════════════════════════ */
-function placePoint(sx, sy) {
-  if(!gstate.turn || gstate.gameOver) return;
-  if(gstate.turn !== myColor) { toast("Ce n'est pas ton tour !", '#e82222'); return; }
-  const hit = getGridHit(sx, sy);
-  if(!hit) return;
-  if(gstate.points.find(p=>p.x===hit.x&&p.y===hit.y)) { toast('Intersection occupée','#e82222'); return; }
-  wsSend({type:'PLACE_POINT', x: hit.x, y: hit.y});
-}
-
-/* ═══════════════════════════════════════════════
-   HUD BUTTONS
-═══════════════════════════════════════════════ */
-$('b-home-view').onclick = resetView;
-$('b-zin').onclick  = () => { const r=cwrap.getBoundingClientRect(); zoomAt(r.width/2, r.height/2, 1.35); };
-$('b-zout').onclick = () => { const r=cwrap.getBoundingClientRect(); zoomAt(r.width/2, r.height/2, 1/1.35); };
-$('b-abandon').onclick = () => { if(confirm('Abandonner la partie ?')) wsSend({type:'ABANDON'}); };
-
-/* ═══════════════════════════════════════════════
-   HOME / MODAL BUTTONS
-═══════════════════════════════════════════════ */
-$('b-create').onclick       = () => wsSend({type:'CREATE_ROOM'});
-$('b-join').onclick         = () => { $('join-err').textContent=''; $('join-in').value=''; show('m-join'); setTimeout(()=>$('join-in').focus(),220); };
-$('b-cancel-create').onclick= () => { hide('m-create'); if(!gstate.turn && !gstate.gameOver) show('s-home'); };
-$('b-cancel-join').onclick  = () => hide('m-join');
-$('b-do-join').onclick      = doJoin;
-$('join-in').onkeydown      = e => { if(e.key==='Enter') doJoin(); };
-$('b-ai').onclick           = () => { wsSend({type:'START_AI_GAME'}); gameMode='ai'; };
-$('b-howto').onclick        = () => show('m-howto');
-$('b-close-howto').onclick  = () => hide('m-howto');
-$('b-replay').onclick       = () => { hide('s-gameover'); show('s-home'); };
-$('b-gohome').onclick       = () => { hide('s-gameover'); show('s-home'); };
-
-['m-create','m-join','m-howto'].forEach(id => {
-  $(id).addEventListener('click', e => {
-    if(e.target===$(id)) {
-      $(id).classList.add('off');
-      if(id==='m-create' && !gstate.turn && !gstate.gameOver) show('s-home');
-    }
-  });
-});
-
-function doJoin() {
-  const v = $('join-in').value.trim();
-  if(!/^\d{4}$/.test(v)) { $('join-err').textContent='Code à 4 chiffres requis'; return; }
-  wsSend({type:'JOIN_ROOM', code:v});
-}
-
-/* ═══════════════════════════════════════════════
-   HUD UPDATE
-═══════════════════════════════════════════════ */
-function updateHUD() {
-  const s  = gstate;
-  const rp = players['red']  || {};
-  const bp = players['blue'] || {};
-
-  /* Scores */
-  $('sc-red').textContent  = String(s.scores.red ).padStart(2,'0');
-  $('sc-blue').textContent = String(s.scores.blue).padStart(2,'0');
-  $('av-red').textContent  = rp.avatar || '👾';
-  $('av-blue').textContent = bp.avatar || '🤖';
-  $('sn-red').textContent  = rp.name   || 'Rouge';
-  $('sn-blue').textContent = bp.name   || 'Bleu';
-
-  /* Active player pill */
-  const ap  = s.turn;
-  const apEl= $('hud-active');
-  apEl.className = 'hud-active' + (ap==='red'?' red-turn':ap==='blue'?' blue-turn':'');
-  $('ha-name').textContent = ap ? (ap==='red' ? rp.name : bp.name) || '—' : '—';
-
-  /* Game timer */
-  const m  = Math.floor(s.timeLeft / 60);
-  const sec= s.timeLeft % 60;
-  const gtEl=$('hud-gt');
-  gtEl.textContent = `${m}:${String(sec).padStart(2,'0')}`;
-  gtEl.className   = 'hud-gtime' + (s.timeLeft<=60?' urgent':'');
-
-  /* Turn bar */
-  const pct  = Math.max(0, (s.turnTimeLeft/8)*100);
-  const barEl= $('hud-bar');
-  barEl.style.width = pct + '%';
-  barEl.className   = 'hud-bar' + (pct<25?' warn':ap==='red'?' red':' blue');
-  $('hud-ts').textContent = s.turnTimeLeft + ' s';
-
-  /* Turn banner */
-  const bn = $('tbanner');
-  if(ap) {
-    bn.textContent    = ap===myColor ? '🎯 À toi de jouer !' : '⏳ Tour de l\'adversaire…';
-    bn.style.color    = ap==='red' ? '#e82222' : '#1e5fe8';
-    bn.style.borderColor = ap==='red' ? 'rgba(232,34,34,.35)' : 'rgba(30,95,232,.35)';
-  }
-}
-
-/* ═══════════════════════════════════════════════
-   SERVER MESSAGES
-═══════════════════════════════════════════════ */
-function onMsg(msg) {
-  switch(msg.type) {
+// ════════════════════════════════════════
+// SERVER → CLIENT MESSAGES
+// ════════════════════════════════════════
+function onWsMsg(msg){
+  switch(msg.type){
 
     case 'ROOM_CREATED':
-      myColor=msg.yourColor; myName=msg.yourName; myAvatar=msg.yourAvatar;
-      gameMode='multi';
-      $('m-code').textContent = msg.code;
-      hide('s-home'); show('m-create');
+      myColor = msg.yourColor; gameMode='multi';
+      $('display-code').textContent = msg.code;
+      showScreen('screen-create');
       break;
 
     case 'ROOM_JOINED':
-      myColor=msg.yourColor; myName=msg.yourName; myAvatar=msg.yourAvatar;
-      gameMode='multi';
-      hide('m-join');
+      myColor = msg.yourColor; gameMode='multi';
       break;
 
     case 'AI_GAME_READY':
-      myColor=msg.yourColor; myName=msg.yourName; myAvatar=msg.yourAvatar;
-      gameMode='ai';
-      players[msg.yourColor] = {name:msg.yourName,  avatar:msg.yourAvatar};
-      players[msg.aiColor]   = {name:msg.aiName,    avatar:msg.aiAvatar};
+      myColor = msg.yourColor; gameMode='ai';
+      serverPlayers[msg.yourColor] = {name:'Yoyo Moi', avatar:msg.yourAvatar};
+      serverPlayers[msg.aiColor]   = {name:'Yoyo IA',  avatar:'🤖'};
       break;
 
     case 'OPPONENT_JOINED':
-      hide('m-create');
-      if(msg.players) msg.players.forEach(p => players[p.color]={name:p.name,avatar:p.avatar});
+      if(msg.players) msg.players.forEach(p=>(serverPlayers[p.color]={name:p.name,avatar:p.avatar}));
       break;
 
     case 'GAME_START':
-      hide('m-create'); hide('m-join'); hide('s-home');
-      /* Reset local state */
-      gstate  = {points:[],squares:[],scores:{red:0,blue:0},
-                 turn:null,turnTimeLeft:8,timeLeft:600,gameOver:false};
-      players = {};
-      animSq  = []; animDot = [];
-      show('s-game');
-      resizeCanvas();
-      resetView();
-      toast('La partie commence !','#22c55e');
+      startLocalGame();
+      toast('La partie commence ! 🎮','#1a3bff');
       break;
 
     case 'STATE_UPDATE': {
-      const prev = gstate;
-      gstate = {
-        points:msg.points, squares:msg.squares, scores:msg.scores,
-        turn:msg.turn, turnTimeLeft:msg.turnTimeLeft,
-        timeLeft:msg.timeLeft, gameOver:msg.gameOver,
-      };
-      if(msg.players) msg.players.forEach(p => players[p.color]={name:p.name,avatar:p.avatar,isAI:p.isAI});
+      // Sync from server
+      const prevPts = {...R.points};
+      // Rebuild points map
+      const newPts = {};
+      for(const p of msg.points) newPts[`${p.x},${p.y}`]=p.color;
 
-      /* Animate new dots */
-      for(const pt of msg.points) {
-        if(!prev.points.find(p=>p.x===pt.x&&p.y===pt.y))
-          animDot.push({x:pt.x, y:pt.y, color:pt.color, t0:performance.now()});
+      // Detect new points for ripple anim
+      for(const [k,c] of Object.entries(newPts)){
+        if(!prevPts[k]){
+          const [gx,gy]=k.split(',').map(Number);
+          R.anims.push({type:'ripple',x:gx,y:gy,color:c,start:performance.now(),dur:450});
+        }
       }
+
+      R.points = newPts;
+
+      // Sync squares
+      const prevSqCount = R.squares.length;
+      R.squares = msg.squares.map(sq=>({...sq, num:sq.number}));
+      if(R.squares.length > prevSqCount){
+        for(let i=prevSqCount; i<R.squares.length; i++){
+          const sq=R.squares[i];
+          R.anims.push({type:'sqflash',x:sq.x,y:sq.y,color:sq.color,start:performance.now(),dur:600});
+        }
+      }
+
+      R.scores   = msg.scores;
+      R.turn     = msg.turn;
+      R.timeTurn = msg.turnTimeLeft;
+      R.timeGame = msg.timeLeft;
+
+      if(msg.players) msg.players.forEach(p=>(serverPlayers[p.color]={name:p.name,avatar:p.avatar,isAI:p.isAI}));
+
       updateHUD();
-      schedDraw();
       break;
     }
 
     case 'SQUARES_FORMED':
-      for(const sq of msg.squares) animSq.push({sq, t0:performance.now()});
-      if(msg.color===myColor) toast(`⬜ +${msg.scored} carré${msg.scored>1?'s':''} !`,'#22c55e');
-      else                    toast('L\'adversaire marque !','#e82222');
-      schedDraw();
+      if(msg.color===myColor)
+        toast(`🟥 +${msg.scored} carré${msg.scored>1?'s':''} !`, '#e8192c');
+      else
+        toast('L\'adversaire marque !', '#1a3bff');
       break;
 
     case 'GAME_OVER':
-      showGameOver(msg);
+      endGame(msg);
       break;
 
     case 'PLAYER_ABANDONED':
-      toast('Un joueur a abandonné','#f59e0b');
+      toast('Un joueur a abandonné !',' #f59e0b');
       break;
 
     case 'OPPONENT_DISCONNECTED':
-      toast('Adversaire déconnecté','#e82222');
-      setTimeout(() => { hide('s-game'); show('s-home'); }, 2200);
+      toast('Adversaire déconnecté 😞','#6680aa');
+      setTimeout(()=>showScreen('screen-welcome'),2500);
       break;
 
     case 'ERROR':
-      $('join-err').textContent = msg.message;
-      toast(msg.message,'#e82222');
+      $('join-error').textContent = msg.message;
+      toast(msg.message,'#e8192c');
       break;
   }
 }
 
-function showGameOver(msg) {
-  hide('s-game');
-  show('s-gameover');
-  const s=msg.scores;
-  $('go-rs').textContent = s.red;
-  $('go-bs').textContent = s.blue;
-  const rp=players['red']||{}, bp=players['blue']||{};
-  $('go-rn').textContent = rp.name||'Rouge';
-  $('go-bn').textContent = bp.name||'Bleu';
-  if(msg.winner===myColor){
-    $('go-trophy').textContent='🏆'; $('go-title').textContent='Victoire !';
-    $('go-sub').textContent='Bravo, tu as gagné !';
-  } else if(!msg.winner){
-    $('go-trophy').textContent='🤝'; $('go-title').textContent='Égalité !';
-    $('go-sub').textContent='Même score — belle partie !';
-  } else {
-    $('go-trophy').textContent='😔'; $('go-title').textContent='Défaite…';
-    $('go-sub').textContent='L\'adversaire a gagné cette fois !';
+// ════════════════════════════════════════
+// START LOCAL GAME (after GAME_START)
+// ════════════════════════════════════════
+function startLocalGame(){
+  R.points={}; R.squares=[];
+  R.scores={red:0,blue:0};
+  R.turn='red'; R.timeGame=GAME_SEC; R.timeTurn=TURN_SEC;
+  R.running=true; R.anims=[]; R.hover=null;
+  showScreen('screen-game');
+  initCanvas();
+  updateHUD();
+}
+
+// ════════════════════════════════════════
+// HUD
+// ════════════════════════════════════════
+function updateHUD(){
+  const rp = serverPlayers['red']  || {name:'Rouge', avatar:'🤖'};
+  const bp = serverPlayers['blue'] || {name:'Bleu',  avatar:'👾'};
+
+  $('av-r').textContent = rp.avatar; $('nm-r').textContent = rp.name;
+  $('av-b').textContent = bp.avatar; $('nm-b').textContent = bp.name;
+  $('e-av-r').textContent=rp.avatar; $('e-nm-r').textContent=rp.name;
+  $('e-av-b').textContent=bp.avatar; $('e-nm-b').textContent=bp.name;
+
+  // Active indicator
+  const turnName = R.turn==='red' ? rp.name : bp.name;
+  $('active-name').textContent = turnName;
+  $('active-dot').style.background = R.turn==='red' ? 'var(--red)' : 'var(--blue)';
+
+  updateScore();
+  updateGlobalTimer();
+  updateTurnBar();
+}
+
+function updateScore(){
+  $('pt-r').textContent = String(R.scores.red ).padStart(2,'0');
+  $('pt-b').textContent = String(R.scores.blue).padStart(2,'0');
+  $('e-pt-r').textContent = R.scores.red;
+  $('e-pt-b').textContent = R.scores.blue;
+}
+
+function updateGlobalTimer(){
+  const m=String(Math.floor(R.timeGame/60)).padStart(2,'0');
+  const s=String(R.timeGame%60).padStart(2,'0');
+  const el=$('global-timer');
+  el.textContent=`${m}:${s}`;
+  el.style.color = R.timeGame<=60 ? 'var(--red)' : '#1a2a4a';
+}
+
+function updateTurnBar(){
+  const pct=(R.timeTurn/TURN_SEC)*100;
+  const bar=$('turn-bar');
+  bar.style.width=pct+'%';
+  bar.style.background = pct>50?'#4dde80':pct>25?'#ffc107':'#e8192c';
+  $('turn-num').textContent = R.timeTurn;
+}
+
+// ════════════════════════════════════════
+// CANVAS
+// ════════════════════════════════════════
+function initCanvas(){
+  const wrap=$('canvas-wrap');
+  const old=$('game-canvas');
+  const fresh=old.cloneNode(false);
+  fresh.id='game-canvas';
+  wrap.replaceChild(fresh,old);
+  canvas=fresh;
+  ctx=canvas.getContext('2d');
+  resizeCanvas();
+  resetView();
+
+  // Desktop
+  canvas.addEventListener('mousedown',  onMD,  false);
+  canvas.addEventListener('mousemove',  onMM,  false);
+  canvas.addEventListener('mouseup',    onMU,  false);
+  canvas.addEventListener('mouseleave', ()=>{ mDrag=false; R.hover=null; }, false);
+  canvas.addEventListener('click',      onCK,  false);
+  canvas.addEventListener('wheel',      onWH,  {passive:false});
+  // Right-click pan
+  canvas.addEventListener('contextmenu',e=>e.preventDefault(),false);
+
+  // Mobile
+  canvas.addEventListener('touchstart',  onTS, {passive:false});
+  canvas.addEventListener('touchmove',   onTM, {passive:false});
+  canvas.addEventListener('touchend',    onTE, {passive:false});
+  canvas.addEventListener('touchcancel', onTE, {passive:false});
+
+  if(animId) cancelAnimationFrame(animId);
+  animId = requestAnimationFrame(render);
+}
+
+function resizeCanvas(){
+  if(!canvas) return;
+  const wrap=$('canvas-wrap');
+  canvas.width  = wrap.clientWidth;
+  canvas.height = wrap.clientHeight;
+}
+window.addEventListener('resize',()=>{ resizeCanvas(); });
+
+function resetView(){
+  if(!canvas) return;
+  R.zoom=1;
+  R.camX=canvas.width /2-(GRID*CELL)/2;
+  R.camY=canvas.height/2-(GRID*CELL)/2;
+}
+function zoomBtn(f){ if(canvas) applyZoom(f,canvas.width/2,canvas.height/2); }
+function applyZoom(f,cx,cy){
+  const nz=Math.min(MAX_ZOOM,Math.max(MIN_ZOOM,R.zoom*f));
+  if(nz===R.zoom) return;
+  R.camX=cx-(cx-R.camX)*(nz/R.zoom);
+  R.camY=cy-(cy-R.camY)*(nz/R.zoom);
+  R.zoom=nz;
+}
+
+// ════════════════════════════════════════
+// RENDER LOOP
+// ════════════════════════════════════════
+function render(ts){
+  animId=requestAnimationFrame(render);
+  if(!canvas) return;
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='#eef3fc';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.save();
+  ctx.translate(R.camX,R.camY);
+  ctx.scale(R.zoom,R.zoom);
+  drawGrid();
+  drawSquares();
+  drawHoverDot();
+  drawPoints(ts);
+  ctx.restore();
+}
+
+function drawGrid(){
+  const vw=canvas.width/R.zoom, vh=canvas.height/R.zoom;
+  const ox=-R.camX/R.zoom,       oy=-R.camY/R.zoom;
+  const x0=Math.max(0,Math.floor(ox/CELL)-1);
+  const x1=Math.min(GRID,Math.ceil((ox+vw)/CELL)+1);
+  const y0=Math.max(0,Math.floor(oy/CELL)-1);
+  const y1=Math.min(GRID,Math.ceil((oy+vh)/CELL)+1);
+  ctx.strokeStyle='#c8d8f0'; ctx.lineWidth=1/R.zoom;
+  for(let x=x0;x<=x1;x++){ ctx.beginPath(); ctx.moveTo(x*CELL,y0*CELL); ctx.lineTo(x*CELL,y1*CELL); ctx.stroke(); }
+  for(let y=y0;y<=y1;y++){ ctx.beginPath(); ctx.moveTo(x0*CELL,y*CELL); ctx.lineTo(x1*CELL,y*CELL); ctx.stroke(); }
+}
+
+function drawSquares(){
+  for(const sq of R.squares){
+    const px=sq.x*CELL, py=sq.y*CELL, isR=sq.color==='red';
+    ctx.fillStyle  = isR?'rgba(232,25,44,.12)':'rgba(26,59,255,.12)';
+    ctx.fillRect(px,py,CELL,CELL);
+    ctx.strokeStyle= isR?'#e8192c':'#1a3bff';
+    ctx.lineWidth  = 2.5/R.zoom;
+    ctx.strokeRect(px+1/R.zoom,py+1/R.zoom,CELL-2/R.zoom,CELL-2/R.zoom);
+    ctx.fillStyle  = isR?'#e8192c':'#1a3bff';
+    ctx.font       = `bold ${Math.round(CELL*.42)}px "Fredoka One",cursive`;
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(sq.num,px+CELL/2,py+CELL/2);
   }
 }
 
-/* ═══════════════════════════════════════════════
-   INIT
-═══════════════════════════════════════════════ */
+function drawHoverDot(){
+  if(!R.hover||!R.running||(myColor&&R.turn!==myColor)) return;
+  const {gx,gy}=R.hover;
+  if(R.points[`${gx},${gy}`]) return;
+  ctx.beginPath(); ctx.arc(gx*CELL,gy*CELL,7,0,Math.PI*2);
+  ctx.fillStyle=R.turn==='red'?'rgba(232,25,44,.3)':'rgba(26,59,255,.3)';
+  ctx.fill();
+}
+
+function drawPoints(ts){
+  // Static points
+  for(const [key,color] of Object.entries(R.points)){
+    const [gx,gy]=key.split(',').map(Number);
+    drawDot(gx*CELL,gy*CELL,color,6);
+  }
+  // Animations
+  R.anims=R.anims.filter(a=>{
+    const t=Math.min((ts-a.start)/a.dur,1);
+    const isR=a.color==='red';
+    if(a.type==='ripple'){
+      const r=6+18*t, alp=(1-t)*.65;
+      ctx.beginPath(); ctx.arc(a.x*CELL,a.y*CELL,r,0,Math.PI*2);
+      ctx.strokeStyle=isR?`rgba(232,25,44,${alp})`:`rgba(26,59,255,${alp})`;
+      ctx.lineWidth=2/R.zoom; ctx.stroke();
+    } else if(a.type==='sqflash'){
+      const sc=.55+.45*t, alp=t<.5?t*2:1;
+      ctx.save();
+      ctx.translate(a.x*CELL+CELL/2,a.y*CELL+CELL/2); ctx.scale(sc,sc);
+      ctx.strokeStyle=isR?`rgba(232,25,44,${alp})`:`rgba(26,59,255,${alp})`;
+      ctx.lineWidth=4/R.zoom; ctx.strokeRect(-CELL/2,-CELL/2,CELL,CELL);
+      ctx.restore();
+    }
+    return t<1;
+  });
+}
+
+function drawDot(px,py,color,r){
+  ctx.beginPath(); ctx.arc(px,py,r,0,Math.PI*2);
+  ctx.fillStyle=color==='red'?'#e8192c':'#1a3bff'; ctx.fill();
+  // White specular
+  ctx.beginPath(); ctx.arc(px,py,r*.35,0,Math.PI*2);
+  ctx.fillStyle='rgba(255,255,255,.5)'; ctx.fill();
+}
+
+// ════════════════════════════════════════
+// DESKTOP INPUT
+// ════════════════════════════════════════
+let mDrag=false, mMoved=false, mX0=0, mY0=0, mCX0=0, mCY0=0;
+let rmbDrag=false, rmbX0=0, rmbY0=0, rmbCX0=0, rmbCY0=0;
+
+function onMD(e){
+  if(e.button===2){
+    // Right-click pan
+    rmbDrag=true; rmbX0=e.clientX; rmbY0=e.clientY;
+    rmbCX0=R.camX; rmbCY0=R.camY; return;
+  }
+  mDrag=true; mMoved=false;
+  mX0=e.clientX; mY0=e.clientY; mCX0=R.camX; mCY0=R.camY;
+}
+function onMM(e){
+  // Update hover
+  const r=canvas.getBoundingClientRect();
+  R.hover={
+    gx:Math.round((e.clientX-r.left-R.camX)/R.zoom/CELL),
+    gy:Math.round((e.clientY-r.top -R.camX)/R.zoom/CELL) // intentional: use camX to keep symmetric
+  };
+  R.hover={
+    gx:Math.round((e.clientX-r.left-R.camX)/R.zoom/CELL),
+    gy:Math.round((e.clientY-r.top -R.camY)/R.zoom/CELL)
+  };
+  if(rmbDrag){
+    R.camX=rmbCX0+(e.clientX-rmbX0);
+    R.camY=rmbCY0+(e.clientY-rmbY0);
+    return;
+  }
+  if(!mDrag) return;
+  const dx=e.clientX-mX0, dy=e.clientY-mY0;
+  if(Math.abs(dx)>8||Math.abs(dy)>8) mMoved=true;
+  R.camX=mCX0+dx; R.camY=mCY0+dy;
+}
+function onMU(e){
+  if(e.button===2){ rmbDrag=false; return; }
+  mDrag=false;
+}
+function onCK(e){
+  if(mMoved){ mMoved=false; return; }
+  placeTap(e.clientX,e.clientY);
+}
+function onWH(e){
+  e.preventDefault();
+  const r=canvas.getBoundingClientRect();
+  applyZoom(e.deltaY<0?1.13:1/1.13, e.clientX-r.left, e.clientY-r.top);
+}
+
+// ════════════════════════════════════════
+// MOBILE TOUCH INPUT
+// ════════════════════════════════════════
+/*
+  Strategy (same as reference file):
+  ┌──────────────────────────────────────────────────────┐
+  │ 1 finger, barely moved  → TAP  → place a point       │
+  │ 1 finger, moved > slop  → PAN  → move camera         │
+  │ 2 fingers               → PINCH→ zoom + pan          │
+  │ Any multi-touch         → NEVER fire a tap           │
+  └──────────────────────────────────────────────────────┘
+*/
+let touchMoved=false, wasMulti=false;
+let tPanX0=0, tPanY0=0, tCamX0=0, tCamY0=0;
+let tPinch0=null, tPinchCX=0, tPinchCY=0;
+
+function pinchDist(t0,t1){ return Math.hypot(t0.clientX-t1.clientX,t0.clientY-t1.clientY); }
+
+function onTS(e){
+  e.preventDefault();
+  const n=e.touches.length;
+  if(n===1 && !wasMulti){
+    const t=e.touches[0];
+    touchMoved=false;
+    tPanX0=t.clientX; tPanY0=t.clientY;
+    tCamX0=R.camX;    tCamY0=R.camY;
+  } else {
+    wasMulti=true; touchMoved=true;
+    if(n>=2){
+      tPinch0  = pinchDist(e.touches[0],e.touches[1]);
+      tPinchCX = (e.touches[0].clientX+e.touches[1].clientX)/2;
+      tPinchCY = (e.touches[0].clientY+e.touches[1].clientY)/2;
+      tPanX0   = tPinchCX; tPanY0=tPinchCY;
+      tCamX0   = R.camX;   tCamY0=R.camY;
+    }
+  }
+}
+
+function onTM(e){
+  e.preventDefault();
+  const n=e.touches.length;
+  if(n===1 && !wasMulti){
+    const t=e.touches[0];
+    const dx=t.clientX-tPanX0, dy=t.clientY-tPanY0;
+    if(Math.abs(dx)>TAP_SLOP||Math.abs(dy)>TAP_SLOP) touchMoved=true;
+    R.camX=tCamX0+dx; R.camY=tCamY0+dy;
+  } else if(n>=2){
+    wasMulti=true; touchMoved=true;
+    const t0=e.touches[0],t1=e.touches[1];
+    const dist=pinchDist(t0,t1);
+    const cx=(t0.clientX+t1.clientX)/2;
+    const cy=(t0.clientY+t1.clientY)/2;
+    const r=canvas.getBoundingClientRect();
+    if(tPinch0) applyZoom(dist/tPinch0, cx-r.left, cy-r.top);
+    tPinch0=dist;
+    R.camX=tCamX0+(cx-tPanX0);
+    R.camY=tCamY0+(cy-tPanY0);
+  }
+}
+
+function onTE(e){
+  e.preventDefault();
+  if(e.touches.length===0 && !wasMulti && !touchMoved){
+    const t=e.changedTouches[0];
+    placeTap(t.clientX,t.clientY);
+  }
+  if(e.touches.length===0){
+    wasMulti=false; touchMoved=false; tPinch0=null;
+  } else if(e.touches.length===1){
+    // 2→1: restart pan reference, block tap
+    wasMulti=true;
+    const t=e.touches[0];
+    tPanX0=t.clientX; tPanY0=t.clientY;
+    tCamX0=R.camX;    tCamY0=R.camY;
+    tPinch0=null;
+  }
+}
+
+// ════════════════════════════════════════
+// PLACE POINT
+// ════════════════════════════════════════
+function placeTap(cx,cy){
+  if(!R.running) return;
+  // In multiplayer, only local player's turn
+  if(myColor && R.turn!==myColor){
+    toast("Ce n'est pas votre tour !",'#6680aa'); return;
+  }
+  if(!canvas) return;
+  const r=canvas.getBoundingClientRect();
+  const gx=Math.round((cx-r.left-R.camX)/R.zoom/CELL);
+  const gy=Math.round((cy-r.top -R.camY)/R.zoom/CELL);
+  if(gx<0||gy<0||gx>GRID||gy>GRID) return;
+  if(R.points[`${gx},${gy}`]){ toast('Intersection déjà occupée','#6680aa'); return; }
+  wsSend({type:'PLACE_POINT',x:gx,y:gy});
+}
+
+// ════════════════════════════════════════
+// GAME OVER
+// ════════════════════════════════════════
+function endGame(msg){
+  R.running=false;
+  const rs=msg.scores.red, bs=msg.scores.blue;
+  const rp=serverPlayers['red']||{name:'Rouge'};
+  const bp=serverPlayers['blue']||{name:'Bleu'};
+  let title,sub;
+  if(msg.winner==='red'){
+    title=`🏆 ${rp.name} gagne !`; sub=`Victoire rouge — ${rs} carré${rs>1?'s':''}`;
+  } else if(msg.winner==='blue'){
+    title=`🏆 ${bp.name} gagne !`; sub=`Victoire bleue — ${bs} carré${bs>1?'s':''}`;
+  } else {
+    title='🤝 Égalité !'; sub=`Les deux joueurs finissent à égalité`;
+  }
+  $('end-title').textContent=title;
+  $('end-sub').textContent=sub;
+  updateScore();
+  setTimeout(()=>showScreen('screen-end'),600);
+}
+
+// ════════════════════════════════════════
+// TOAST
+// ════════════════════════════════════════
+let toastTO;
+function toast(msg,color='#1a3bff'){
+  const el=$('notif');
+  el.textContent=msg;
+  el.style.color=color;
+  el.style.borderLeftColor=color;
+  el.classList.add('show');
+  clearTimeout(toastTO);
+  toastTO=setTimeout(()=>el.classList.remove('show'),2800);
+}
+
+// ════════════════════════════════════════
+// INIT
+// ════════════════════════════════════════
 wsConnect();
 </script>
 </body>
