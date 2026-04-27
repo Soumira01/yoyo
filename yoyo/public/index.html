@@ -17,10 +17,9 @@
   --blue-l: rgba(26,59,255,.13);
   --grid:   #c8d8f0;
   --bg:     #eef3fc;
-  --bar-h:  56px;
+  --bar-h:  clamp(48px, 8vh, 56px);
 }
-/* Sur mobile le HUD passe en 2 lignes → hauteur doublée */
-@media(max-width:600px){ :root{ --bar-h:96px; } }
+@media(max-width:600px){ :root{ --bar-h: clamp(44px, 7vh, 48px); } }
 
 *,*::before,*::after{ margin:0; padding:0; box-sizing:border-box; }
 html,body{
@@ -41,7 +40,7 @@ html,body{
   background:var(--bg)
     linear-gradient(var(--grid) 1px,transparent 1px),
     linear-gradient(90deg,var(--grid) 1px,transparent 1px);
-  background-size:40px 40px;
+  background-size: clamp(20px, 5vw, 40px) clamp(20px, 5vw, 40px);
 }
 
 /* ── BUTTONS ─────────────────────────────── */
@@ -67,16 +66,6 @@ html,body{
 .btn-row{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
 
 /* ── WELCOME ─────────────────────────────── */
-/* La grille CSS reste en fond, on superpose des carrés déco via canvas */
-#screen-welcome{ overflow:hidden; }
-#home-canvas{
-  position:absolute; inset:0;
-  pointer-events:none; z-index:0;
-}
-.home-content{
-  position:relative; z-index:1;
-  display:flex; flex-direction:column; align-items:center;
-}
 .logo{
   font-family:'Fredoka One',cursive;
   font-size:clamp(52px,12vw,90px);
@@ -90,7 +79,7 @@ html,body{
   margin:6px 0 40px; text-align:center; padding:0 16px;
 }
 .help-link{
-  position:absolute; top:16px; right:18px; z-index:2;
+  position:absolute; top:16px; right:18px;
   font-size:13px; color:var(--blue); cursor:pointer; font-weight:700; text-decoration:underline;
 }
 
@@ -133,19 +122,16 @@ html,body{
 @keyframes wdot{ 0%,80%,100%{transform:translateY(0)} 40%{transform:translateY(-7px)} }
 
 /* ── GAME SCREEN ─────────────────────────── */
-#screen-game{ background:var(--bg); flex-direction:column; align-items:stretch; overflow:hidden; }
+#screen-game{ flex-direction:column; align-items:stretch; overflow:hidden; }
 
-/* ── TOP BAR — Desktop: 1 ligne, Mobile: 2 lignes ── */
+/* Top bar */
 #top-bar{
-  display:flex; align-items:center;
-  padding:0 12px;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:4px 8px;
   background:rgba(238,243,252,.97); backdrop-filter:blur(8px);
   border-bottom:2px solid var(--grid);
-  flex-shrink:0; z-index:20;
-  height:var(--bar-h);
-  /* Desktop: tous les éléments côte à côte */
-  flex-wrap:nowrap; gap:8px;
-  overflow:hidden;
+  flex-shrink:0; z-index:20; gap:4px; flex-wrap:wrap;
+  height:var(--bar-h); overflow:hidden;
 }
 .top-logo{ font-family:'Fredoka One',cursive; font-size:clamp(20px,4vw,30px); color:var(--red); flex-shrink:0; }
 
@@ -199,85 +185,14 @@ html,body{
 #canvas-wrap{ flex:1; overflow:hidden; position:relative; cursor:crosshair; touch-action:none; }
 #game-canvas{ position:absolute; top:0; left:0; display:block; }
 
-/* ── hud-break et hud-row2 masqués sur desktop ── */
-.hud-break{ display:none; }
-.hud-row2 { display:none; }
-
-/* Sur mobile: ligne 1 allégée + ligne 2 visible */
-@media(max-width:600px){
-  /* Masquer les éléments desktop qui passent en ligne 2 */
-  #scores-desk{ display:none; }
-  #top-bar > .zoom-btns{ display:none; }
-  #top-bar > .btn-red{ display:none; }
-
-  /* Afficher le séparateur et la ligne 2 */
-  .hud-break{ display:block; }
-  .hud-row2 { display:flex; }
-
-  /* ── Ligne 1 : logo + pill + timer ── */
-  .top-logo{
-    font-size:22px;
-    flex:0 0 auto;
-    margin-right:6px;
-  }
-  .active-pill{
-    font-size:12px;
-    padding:3px 9px;
-    flex:1 1 auto;            /* prend l'espace disponible */
-    min-width:0;
-    margin-right:6px;
-  }
-  .active-pill .joue-label{ display:none; } /* "joue" masqué si trop serré */
-  .timers{
-    flex:0 0 auto;
-    gap:0;
-    /* La barre de tour descend en ligne 2, on la retire ici */
-  }
-  .timers .turn-wrap{ display:none; } /* masqué en ligne 1, réappara en ligne 2 */
-  .global-timer{
-    font-size:17px;
-    padding:2px 10px;
-    min-width:60px;
-  }
-
-  /* Séparateur invisible pour forcer un saut de ligne */
-  .hud-break{
-    flex:0 0 100%;
-    height:1px;
-    background:var(--grid);
-    margin:0 -8px;
-    width:calc(100% + 16px);
-  }
-
-  /* ── Ligne 2 : barre tour + scores + zoom + abandon ── */
-  .hud-row2{
-    display:flex;
-    align-items:center;
-    gap:6px;
-    width:100%;
-    padding:3px 0;
-  }
-  /* La barre de tour dans la ligne 2 */
-  .hud-row2 .turn-wrap2{
-    display:flex; align-items:center; gap:4px;
-    font-size:11px; font-weight:700; color:#6680aa;
-    flex-shrink:0;
-  }
-  .hud-row2 .turn-wrap2 .turn-bar-bg{ width:48px; }
-
-  .scores{
-    flex:1 1 auto;
-    align-items:flex-start;
-  }
-  .score-label{ font-size:10px; }
-  .score-row .nm{ max-width:45px; font-size:10px; }
-  .score-row .pt{ font-size:14px; }
-  .score-row .av{ font-size:13px; }
-
-  .zoom-btns{ gap:2px; }
-  .zbtn{ width:26px; height:26px; font-size:14px; border-radius:6px; }
-
-  .btn-red.btn-sm{ font-size:11px; padding:5px 10px; }
+/* hide turn-wrap on small screens */
+@media(max-width:480px){
+  #top-bar{ padding:2px 4px; gap:2px; }
+  .active-pill span:last-child{ display:none; }
+  .turn-wrap{ display:none; }
+  .score-row .nm{ display:none; }
+  .zoom-btns{ display:none; } /* Hide zoom buttons on very small screens */
+  .scores{ flex-direction:row; gap:8px; } /* Stack scores horizontally if needed */
 }
 
 /* ── TOAST ───────────────────────────────── */
@@ -358,25 +273,22 @@ html,body{
 <body>
 
 <!-- CONNECTING -->
-<div id="screen-connecting" class="screen active">
+<div id="screen-connecting" class="screen grid-bg active">
   <div class="spinner"></div>
   <p>Connexion…</p>
 </div>
 
 <!-- WELCOME -->
 <div id="screen-welcome" class="screen grid-bg">
-  <canvas id="home-canvas"></canvas>
   <span class="help-link" onclick="openModal()">Comment ça marche ?</span>
-  <div class="home-content">
-    <div class="logo">YOYO</div>
-    <div class="subtitle">Le jeu des carrés stratégiques</div>
-    <div class="btn-row">
-      <button class="btn btn-green"  onclick="doCreate()">🎮 Lancer une partie</button>
-      <button class="btn btn-purple" onclick="doShowJoin()">🔗 Rejoindre une partie</button>
-    </div>
-    <div style="margin-top:14px;">
-      <button class="btn btn-blue" onclick="doAI()">🤖 Jouer contre l'IA</button>
-    </div>
+  <div class="logo">YOYO</div>
+  <div class="subtitle">Le jeu des carrés stratégiques</div>
+  <div class="btn-row">
+    <button class="btn btn-green"  onclick="doCreate()">🎮 Lancer une partie</button>
+    <button class="btn btn-purple" onclick="doShowJoin()">🔗 Rejoindre une partie</button>
+  </div>
+  <div style="margin-top:14px;">
+    <button class="btn btn-blue" onclick="doAI()">🤖 Jouer contre l'IA</button>
   </div>
 </div>
 
@@ -410,20 +322,18 @@ html,body{
 </div>
 
 <!-- GAME -->
-<div id="screen-game" class="screen">
+<div id="screen-game" class="screen grid-bg">
   <div id="top-bar">
-    <!-- ── Ligne 1 ── -->
     <div class="top-logo">YOYO</div>
 
     <div class="active-pill">
       <div class="active-dot" id="active-dot" style="background:var(--red)"></div>
       <span id="active-name">Joueur</span>
-      <span class="joue-label" style="font-size:11px;color:#6680aa;font-weight:600;">joue</span>
+      <span style="font-size:11px;color:#6680aa;font-weight:600;">joue</span>
     </div>
 
     <div class="timers">
       <div class="global-timer" id="global-timer">10:00</div>
-      <!-- barre de tour desktop (ligne 1) -->
       <div class="turn-wrap">
         <span>Tour&nbsp;:</span>
         <div class="turn-bar-bg"><div id="turn-bar" style="width:100%"></div></div>
@@ -431,7 +341,7 @@ html,body{
       </div>
     </div>
 
-    <div class="scores" id="scores-desk">
+    <div class="scores">
       <div class="score-label">Score !!!</div>
       <div class="score-row r"><span class="av" id="av-r">🤖</span><span class="nm" id="nm-r">Rouge</span><span class="pt" id="pt-r">00</span></div>
       <div class="score-row b"><span class="av" id="av-b">👾</span><span class="nm" id="nm-b">Bleu</span> <span class="pt" id="pt-b">00</span></div>
@@ -444,29 +354,6 @@ html,body{
     </div>
 
     <button class="btn btn-red btn-sm" onclick="abandonGame()">Abandonner</button>
-
-    <!-- ── Séparateur → saut de ligne mobile ── -->
-    <div class="hud-break"></div>
-
-    <!-- ── Ligne 2 (mobile uniquement) ── -->
-    <div class="hud-row2">
-      <div class="turn-wrap2">
-        <span>Tour&nbsp;:</span>
-        <div class="turn-bar-bg"><div id="turn-bar-2" style="width:100%"></div></div>
-        <span id="turn-num-2">8</span>s
-      </div>
-      <div class="scores" id="scores-mob">
-        <div class="score-label">Score !!!</div>
-        <div class="score-row r"><span class="av" id="av-r-m">🤖</span><span class="nm" id="nm-r-m">Rouge</span><span class="pt" id="pt-r-m">00</span></div>
-        <div class="score-row b"><span class="av" id="av-b-m">👾</span><span class="nm" id="nm-b-m">Bleu</span> <span class="pt" id="pt-b-m">00</span></div>
-      </div>
-      <div class="zoom-btns" style="margin-left:auto;">
-        <button class="zbtn" onclick="zoomBtn(1.25)"   title="Zoom +">+</button>
-        <button class="zbtn" onclick="zoomBtn(1/1.25)" title="Zoom −">−</button>
-        <button class="zbtn" onclick="resetView()"     title="Vue" style="font-size:11px;">⌖</button>
-      </div>
-      <button class="btn btn-red btn-sm" onclick="abandonGame()">Abandonner</button>
-    </div>
   </div>
 
   <div id="canvas-wrap"><canvas id="game-canvas"></canvas></div>
@@ -535,7 +422,7 @@ function wsConnect(){
   ws.onopen    = () => {
     wsOk = true;
     wsPending.forEach(wsSend); wsPending=[];
-    showScreen('screen-welcome');  // triggers home canvas via the override
+    showScreen('screen-welcome');
   };
   ws.onmessage = e => onWsMsg(JSON.parse(e.data));
   ws.onclose   = () => { wsOk=false; setTimeout(wsConnect,2000); };
@@ -688,7 +575,7 @@ function onWsMsg(msg){
       break;
 
     case 'PLAYER_ABANDONED':
-      toast('Un joueur a abandonné !',' #f59e0b');
+      toast('Un joueur a abandonné !','#f59e0b');
       break;
 
     case 'OPPONENT_DISCONNECTED':
@@ -723,13 +610,8 @@ function updateHUD(){
   const rp = serverPlayers['red']  || {name:'Rouge', avatar:'🤖'};
   const bp = serverPlayers['blue'] || {name:'Bleu',  avatar:'👾'};
 
-  // Desktop scores
   $('av-r').textContent = rp.avatar; $('nm-r').textContent = rp.name;
   $('av-b').textContent = bp.avatar; $('nm-b').textContent = bp.name;
-  // Mobile scores (ligne 2)
-  $('av-r-m').textContent = rp.avatar; $('nm-r-m').textContent = rp.name;
-  $('av-b-m').textContent = bp.avatar; $('nm-b-m').textContent = bp.name;
-  // End screen
   $('e-av-r').textContent=rp.avatar; $('e-nm-r').textContent=rp.name;
   $('e-av-b').textContent=bp.avatar; $('e-nm-b').textContent=bp.name;
 
@@ -744,10 +626,8 @@ function updateHUD(){
 }
 
 function updateScore(){
-  const rs = String(R.scores.red ).padStart(2,'0');
-  const bs = String(R.scores.blue).padStart(2,'0');
-  $('pt-r').textContent = rs; $('pt-b').textContent = bs;
-  $('pt-r-m').textContent = rs; $('pt-b-m').textContent = bs;
+  $('pt-r').textContent = String(R.scores.red).padStart(2,'0');
+  $('pt-b').textContent = String(R.scores.blue).padStart(2,'0');
   $('e-pt-r').textContent = R.scores.red;
   $('e-pt-b').textContent = R.scores.blue;
 }
@@ -762,15 +642,10 @@ function updateGlobalTimer(){
 
 function updateTurnBar(){
   const pct=(R.timeTurn/TURN_SEC)*100;
-  const bg = pct>50?'#4dde80':pct>25?'#ffc107':'#e8192c';
-  // Desktop bar
-  $('turn-bar').style.width=pct+'%';
-  $('turn-bar').style.background=bg;
+  const bar=$('turn-bar');
+  bar.style.width=pct+'%';
+  bar.style.background = pct>50?'#4dde80':pct>25?'#ffc107':'#e8192c';
   $('turn-num').textContent = R.timeTurn;
-  // Mobile bar (ligne 2)
-  $('turn-bar-2').style.width=pct+'%';
-  $('turn-bar-2').style.background=bg;
-  $('turn-num-2').textContent = R.timeTurn;
 }
 
 // ════════════════════════════════════════
@@ -940,10 +815,6 @@ function onMM(e){
   const r=canvas.getBoundingClientRect();
   R.hover={
     gx:Math.round((e.clientX-r.left-R.camX)/R.zoom/CELL),
-    gy:Math.round((e.clientY-r.top -R.camX)/R.zoom/CELL) // intentional: use camX to keep symmetric
-  };
-  R.hover={
-    gx:Math.round((e.clientX-r.left-R.camX)/R.zoom/CELL),
     gy:Math.round((e.clientY-r.top -R.camY)/R.zoom/CELL)
   };
   if(rmbDrag){
@@ -1101,116 +972,6 @@ function toast(msg,color='#1a3bff'){
   clearTimeout(toastTO);
   toastTO=setTimeout(()=>el.classList.remove('show'),2800);
 }
-
-// ════════════════════════════════════════
-// HOME SCREEN CANVAS — grille animée
-// ════════════════════════════════════════
-(function initHomeCanvas(){
-  const hc = $('home-canvas');
-  if(!hc) return;
-  const hx = hc.getContext('2d');
-  const CELL_H = 40;
-  let W,H, particles=[], squares=[];
-
-  function resize(){
-    W = hc.width  = hc.offsetWidth;
-    H = hc.height = hc.offsetHeight;
-  }
-  window.addEventListener('resize', resize);
-  resize();
-
-  // Génère des points flottants
-  function mkParticle(){
-    const color = Math.random()<.5?'red':'blue';
-    const gx = Math.floor(Math.random()*(W/CELL_H+2));
-    const gy = Math.floor(Math.random()*(H/CELL_H+2));
-    return {
-      x: gx*CELL_H, y: gy*CELL_H,
-      color,
-      alpha:0, targetAlpha: .18+Math.random()*.25,
-      size: 4+Math.random()*3,
-      vx:(Math.random()-.5)*.3, vy:(Math.random()-.5)*.3,
-      life:0, maxLife:300+Math.random()*400
-    };
-  }
-
-  // Génère des mini-carrés déco (transparents)
-  function mkSquare(){
-    const color = Math.random()<.5?'red':'blue';
-    return {
-      x: Math.random()*W, y: Math.random()*H,
-      size: CELL_H*(1+Math.floor(Math.random()*2)),
-      color, alpha:0, targetAlpha:.06+Math.random()*.07,
-      life:0, maxLife:500+Math.random()*600
-    };
-  }
-
-  for(let i=0;i<14;i++) particles.push(mkParticle());
-  for(let i=0;i< 6;i++) squares.push(mkSquare());
-
-  let homeAnimId;
-  function drawHome(){
-    if(!$('screen-welcome').classList.contains('active')){
-      cancelAnimationFrame(homeAnimId); return;
-    }
-    homeAnimId = requestAnimationFrame(drawHome);
-    hx.clearRect(0,0,W,H);
-
-    // Carrés déco
-    squares = squares.map(s=>{
-      s.life++;
-      const t = s.life/s.maxLife;
-      s.alpha = t<.2 ? s.targetAlpha*(t/.2)
-               :t>.8 ? s.targetAlpha*(1-(t-.8)/.2)
-               :s.targetAlpha;
-      const col = s.color==='red'?`rgba(232,25,44,${s.alpha})`:`rgba(26,59,255,${s.alpha})`;
-      hx.strokeStyle=col; hx.lineWidth=1.5;
-      hx.strokeRect(s.x,s.y,s.size,s.size);
-      hx.fillStyle=s.color==='red'?`rgba(232,25,44,${s.alpha*.4})`:`rgba(26,59,255,${s.alpha*.4})`;
-      hx.fillRect(s.x,s.y,s.size,s.size);
-      // Numéro
-      if(s.alpha>.03 && s.size>=CELL_H){
-        hx.fillStyle=col;
-        hx.font=`bold ${Math.round(s.size*.38)}px "Fredoka One",cursive`;
-        hx.textAlign='center'; hx.textBaseline='middle';
-        hx.fillText(String(Math.floor(s.life/(s.maxLife/4))+1), s.x+s.size/2, s.y+s.size/2);
-      }
-      if(s.life>=s.maxLife) return mkSquare();
-      return s;
-    });
-
-    // Points flottants
-    particles = particles.map(p=>{
-      p.life++; p.x+=p.vx; p.y+=p.vy;
-      const t=p.life/p.maxLife;
-      p.alpha=t<.15?p.targetAlpha*(t/.15):t>.8?p.targetAlpha*(1-(t-.8)/.2):p.targetAlpha;
-      const col=p.color==='red'?`rgba(232,25,44,${p.alpha})`:`rgba(26,59,255,${p.alpha})`;
-      hx.beginPath(); hx.arc(p.x,p.y,p.size,0,Math.PI*2);
-      hx.fillStyle=col; hx.fill();
-      // Reflet blanc
-      hx.beginPath(); hx.arc(p.x,p.y,p.size*.35,0,Math.PI*2);
-      hx.fillStyle=`rgba(255,255,255,${p.alpha*.6})`; hx.fill();
-      if(p.life>=p.maxLife) return mkParticle();
-      return p;
-    });
-  }
-
-  // Lance l'animation quand l'accueil est visible
-  const origShow = window.showScreen;
-  window.showScreen = function(id){
-    origShow(id);
-    if(id==='screen-welcome'){
-      cancelAnimationFrame(homeAnimId);
-      resize();
-      homeAnimId=requestAnimationFrame(drawHome);
-    }
-  };
-
-  // Lance immédiatement si on arrive sur le welcome
-  if($('screen-welcome').classList.contains('active')){
-    homeAnimId=requestAnimationFrame(drawHome);
-  }
-})();
 
 // ════════════════════════════════════════
 // INIT
